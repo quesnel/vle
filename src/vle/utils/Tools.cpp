@@ -88,9 +88,11 @@ template VLE_API bool is < bool >(const std::string& str);
 template VLE_API bool is < int8_t >(const std::string& str);
 template VLE_API bool is < int16_t >(const std::string& str);
 template VLE_API bool is < int32_t >(const std::string& str);
+template VLE_API bool is < int64_t >(const std::string& str);
 template VLE_API bool is < uint8_t >(const std::string& str);
 template VLE_API bool is < uint16_t >(const std::string& str);
 template VLE_API bool is < uint32_t >(const std::string& str);
+template VLE_API bool is < uint64_t >(const std::string& str);
 template VLE_API bool is < double >(const std::string& str);
 template VLE_API bool is < float >(const std::string& str);
 
@@ -116,29 +118,35 @@ template VLE_API std::string to < bool >(const bool t);
 template VLE_API std::string to < int8_t >(const int8_t t);
 template VLE_API std::string to < int16_t >(const int16_t t);
 template VLE_API std::string to < int32_t >(const int32_t t);
+template VLE_API std::string to < int64_t >(const int64_t t);
 template VLE_API std::string to < uint8_t >(const uint8_t t);
 template VLE_API std::string to < uint16_t >(const uint16_t t);
 template VLE_API std::string to < uint32_t >(const uint32_t t);
+template VLE_API std::string to < uint64_t >(const uint64_t t);
 template VLE_API std::string to < double >(const double t);
 template VLE_API std::string to < float >(const float t);
 
 template < typename T >
     T to(const std::string& str)
     {
-        try {
-            return boost::lexical_cast < T >(str);
-        } catch (const boost::bad_lexical_cast& /*e*/) {
-            throw utils::ArgError(fmt(_("Can not convert `%1%'")) % str);
-        }
+        std::stringstream s(str);
+        T ret;
+
+        if (s >> ret)
+            return ret;
+
+        throw utils::ArgError(fmt(_("Can not convert `%1%'")) % str);
     }
 
 template VLE_API bool to < bool >(const std::string& str);
 template VLE_API int8_t to < int8_t >(const std::string& str);
 template VLE_API int16_t to < int16_t >(const std::string& str);
 template VLE_API int32_t to < int32_t >(const std::string& str);
+template VLE_API int64_t to < int64_t >(const std::string& str);
 template VLE_API uint8_t to < uint8_t >(const std::string& str);
 template VLE_API uint16_t to < uint16_t >(const std::string& str);
 template VLE_API uint32_t to < uint32_t >(const std::string& str);
+template VLE_API uint64_t to < uint64_t >(const std::string& str);
 template VLE_API double to < double >(const std::string& str);
 template VLE_API float to < float >(const std::string& str);
 
