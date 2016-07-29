@@ -27,9 +27,9 @@
 #include <vle/utils/details/PackageParser.hpp>
 #include <vle/utils/details/Package.hpp>
 #include <vle/utils/Trace.hpp>
+#include <vle/utils/Tools.hpp>
 #include <vle/utils/i18n.hpp>
 #include <boost/algorithm/string/trim.hpp>
-#include <boost/lexical_cast.hpp>
 #include <fstream>
 #include <cassert>
 
@@ -57,8 +57,6 @@ class DescriptionParser
             oldcolumn = column++;
         }
 
-        // std::cout << "+[" << last << "]";
-
         return last;
     }
 
@@ -70,8 +68,6 @@ class DescriptionParser
         } else {
             column = oldcolumn;
         }
-
-        // std::cout << "-[" << last << "]";
 
         in.unget();
     }
@@ -174,16 +170,10 @@ class DescriptionParser
         unget();
 
         try {
-            *value = boost::lexical_cast < int32_t >(str);
-
-            // std::cout << "read_integer " << *value << "\n";
-
+            *value = utils::to<int32_t>(str);
             return true;
         } catch (const std::exception &e) {
             (void)e;
-
-            // std::cout << "read_integer bad cast\n";
-
             return false;
         }
     }
@@ -406,12 +396,10 @@ class DescriptionParser
         } while (in);
 
         try {
-            *value = boost::lexical_cast < uint64_t >(str);
-
+            *value = utils::to<uint64_t>(str);
             return true;
         } catch (const std::exception &e) {
             (void)e;
-
             return false;
         }
     }
