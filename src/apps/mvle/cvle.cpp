@@ -110,6 +110,20 @@ struct Access
         return port.empty();
     }
 
+    inline
+    bool is_begin() const
+    {
+        return condition == "simulation_engine" and port == "begin"
+            and params.empty();
+    }
+
+    inline
+    bool is_duration() const
+    {
+        return condition == "simulation_engine" and port == "duration"
+            and params.empty();
+    }
+
     /** @e value function try to convert the @e Access object into a
      * @e vle::value::Value pointer by browsing the experimental condition
      * of the @e vpz.
@@ -227,20 +241,39 @@ void assign_string_to_value(vle::value::Value *value, const std::string &str)
     }
 }
 
+inline
+double string_to_double(const std::string& str)
+{
+    try {
+        return vle::utils::to<double>(str);
+    } catch(const std::exception& /*e*/) {
+        throw std::runtime_error(
+            (vle::fmt("fail to assign double %1% to duration or begin") % str).str());
+    }
+}
+
 struct ColumnDefinition
 {
+    enum Type { STRING, VALUE, BEGIN, DURATION };
+    
     ColumnDefinition(const std::string &str)
         : str(str)
-        , value(NULL)
+        , type(STRING)
     {}
 
     ColumnDefinition(vle::value::Value *value)
-        : str(std::string())
-        , value(value)
+        : value(value)
+        , type(VALUE)
     {}
 
+    ColumnDefinition(Type t)
+        : value(NULL)
+        , type(t)
+    {}
+    
     std::string str;
     vle::value::Value *value;
+    Type type;
 };
 
 struct Columns
@@ -259,20 +292,35 @@ struct Columns
         data.push_back(ColumnDefinition(value));
     }
 
+    void add(ColumnDefinition::Type t)
+    {
+        data.push_back(ColumnDefinition(t));
+    }
+    
     std::size_t size() const
     {
         return data.size();
     }
 
-    void update(std::size_t id, const std::string &str)
+    void update(std::size_t id, const std::string &str, vle::vpz::Experiment& exp)
     {
         if (id >= data.size())
             throw std::runtime_error("Too many column data");
 
-        if (data[id].value == NULL)
+        switch (data[id].type) {
+        case ColumnDefinition::STRING:
             data[id].str = str;
-        else
+            break;
+        case ColumnDefinition::VALUE:
             assign_string_to_value(data[id].value, str);
+            break;
+        case ColumnDefinition::BEGIN:
+            exp.setBegin(string_to_double(str));
+            break;
+        case ColumnDefinition::DURATION:
+            exp.setDuration(string_to_double(str));
+            break;
+        }
     }
 
     friend
@@ -393,6 +441,10 @@ public:
 
             if (access.is_undefined_string()) {
                 m_columns.add(access.condition);
+            } else if (access.is_begin()) {
+                m_columns.add(ColumnDefinition::BEGIN);
+            } else if (access.is_duration()) {
+                m_columns.add(ColumnDefinition::DURATION);
             } else {
                 m_columns.add(access.value(m_vpz));
             }
@@ -420,7 +472,7 @@ public:
 
             for (std::size_t i = 0, e = output.size(); i != e; ++i) {
                 std::string current = cleanup_token(output[i]);
-                m_columns.update(i, current);
+                m_columns.update(i, current, m_vpz->project().experiment());
             }
 
             result << m_columns;
