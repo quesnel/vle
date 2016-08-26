@@ -100,10 +100,16 @@ public:
 
     /**
      * @brief Process the initialization of the model by initializing the
-     * initial state and return the duration (or timeAdvance) of the initial
-     * state.
+     * initial state and return the duration of the initial state.
+     *
+     * If @e init returns 0 or a positive real, this value means the
+     * duration of the current state. But, if @e init returns a negative
+     * real, this value means an absolute value.
+     *
      * @param time the time of the creation of this model.
-     * @return duration of the initial state.
+     *
+     * @return duration of the initial state ([0, +oo{) or an absolute
+     * date (]-oo, 0[).
      */
     virtual Time init(Time /* time */)
     {
@@ -145,6 +151,24 @@ public:
     /**
      * @brief Process the time advance function: compute the duration of the
      * current state.
+     *
+     * If @e timeAdvance returns 0 or a positive real, this value means
+     * the duration of the current state. But, if @e timeAdvance returns a
+     * negative real, this value means an absolute value.
+     *
+     * @code
+     * class Model : public vle::devs::Dynamics
+     * {
+     *     void timeAdvance() const
+     *     {
+     *         return 0.1; // Wake up me in current time + 0.1.
+     *
+     *         return -123.456; // Wake up me at date 123.456.
+     *     }
+     * }
+     *
+     * @endcode
+     *
      * @return duration of the current state.
      */
     virtual Time timeAdvance() const

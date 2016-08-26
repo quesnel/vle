@@ -137,7 +137,6 @@ public:
     /*-*-*-*-*-*-*-*-*-*/
 
     Time init(Time time);
-    Time timeAdvance();
     void finish();
     void output(Time time);
     Time internalTransition(Time time);

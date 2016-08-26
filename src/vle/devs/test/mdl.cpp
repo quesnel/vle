@@ -706,6 +706,42 @@ public:
     }
 };
 
+//
+// This model is used to try the relative/absolute date in DEVS kernel.
+//
+class TimeModel : public devs::Dynamics
+{
+public:
+    TimeModel(const devs::DynamicsInit& atom,
+              const devs::InitEventList& events)
+        : devs::Dynamics(atom, events)
+    {}
+
+    virtual devs::Time init(devs::Time /* time */) override
+    {
+        absolute = 2;
+
+        return -123;
+    }
+
+    virtual devs::Time timeAdvance() const override
+    {
+        if (absolute)
+            return -321;
+
+        return 1;
+    }
+
+    virtual void internalTransition(devs::Time /* time */) override
+    {
+        if (absolute > 0)
+            --absolute;
+    }
+
+    int absolute;
+};
+
+
 DECLARE_DYNAMICS_SYMBOL(dynamics_MyBeep, MyBeep)
 DECLARE_DYNAMICS_SYMBOL(dynamics_counter, Counter)
 DECLARE_DYNAMICS_SYMBOL(dynamics_transform, Transform)
@@ -713,6 +749,7 @@ DECLARE_DYNAMICS_SYMBOL(dynamics_confluent_transitionA, Confluent_transitionA)
 DECLARE_DYNAMICS_SYMBOL(dynamics_confluent_transitionB, Confluent_transitionB)
 DECLARE_DYNAMICS_SYMBOL(dynamics_confluent_transitionC, Confluent_transitionC)
 DECLARE_DYNAMICS_SYMBOL(dynamics_confluent_transitionD, Confluent_transitionD)
+DECLARE_DYNAMICS_SYMBOL(dynamics_time_model, TimeModel)
 DECLARE_EXECUTIVE_SYMBOL(exe_branch, Branch)
 DECLARE_EXECUTIVE_SYMBOL(exe_deleteconnection, DeleteConnection)
 DECLARE_EXECUTIVE_SYMBOL(exe_genexecutive, GenExecutive)
@@ -766,6 +803,7 @@ test_gensvpz()
 
     while (root.run())
         ;
+
     std::unique_ptr<value::Map> out = root.outputs();
     root.finish();
 
@@ -920,17 +958,64 @@ test_confluent_transition_2()
     }
 }
 
-int
-main()
+void test_time_model()
+{
+    auto ctx = vle::utils::make_context();
+    vpz::Vpz vpz;
+
+    vpz.project().experiment().setDuration(2000.0);
+    vpz.project().experiment().setBegin(-1000.0);
+
+    {
+        auto x = vpz.project().dynamics().dynamiclist().emplace(
+            "dyn_1", vpz::Dynamic("dyn_1"));
+        Ensures(x.second == true);
+        x.first->second.setLibrary("dynamics_time_model");
+    }
+
+    {
+        auto* depth0 = new vpz::CoupledModel("depth0", nullptr);
+        auto *atom = depth0->addAtomicModel("atom");
+        atom->setDynamics("dyn_1");
+        atom->addOutputPort("out");
+
+        vpz.project().model().setGraph(std::unique_ptr<vpz::BaseModel>(depth0));
+    }
+
+    devs::RootCoordinator root(ctx);
+    root.load(vpz);
+    vpz.clear();
+    root.init();
+
+    root.run();
+    Ensures(root.getCurrentTime() == -1000);
+    root.run();
+    Ensures(root.getCurrentTime() == 123);
+    root.run();
+    Ensures(root.getCurrentTime() == 321);
+
+    devs::Time t = 321;
+    while (t < 1000) {
+        Ensures(root.getCurrentTime() == t);
+        ++t;
+        root.run();
+    }
+
+    root.finish();
+}
+
+int main()
 {
     vle::Init app;
 
     test_normal_behaviour();
-    test_confluent_transition();
-    test_confluent_transition_2();
     test_gensvpz();
     test_gens_delete_connection();
     test_gens_ordereddeleter();
+    test_confluent_transition();
+    test_confluent_transition_2();
+    test_time_model();
 
     return unit_test::report_errors();
 }
+

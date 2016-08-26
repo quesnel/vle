@@ -136,27 +136,17 @@ Simulator::output(Time time)
 }
 
 Time
-Simulator::timeAdvance()
-{
-    Time tn = m_dynamics->timeAdvance();
-
-    if (tn < 0.0)
-        throw utils::ModellingError(
-          "Negative time advance in '%s' (%f)", getName().c_str(), tn);
-
-    return tn;
-}
-
-Time
 Simulator::init(Time time)
 {
     Time tn = m_dynamics->init(time);
 
-    if (tn < 0.0)
+    if (tn >= 0)
+        return m_tn = tn + time;
+
+    if (-tn < time)
         throw utils::ModellingError(
           "Negative init function in '%s' (%f)", getName().c_str(), tn);
 
-    m_tn = tn + time;
     return m_tn;
 }
 
@@ -165,12 +155,24 @@ Simulator::confluentTransitions(Time time)
 {
     assert(not m_external_events.empty() and "Simulator d-conf error");
     assert(m_have_internal == true and "Simulator d-conf error");
+
     m_dynamics->confluentTransitions(time, m_external_events);
 
     m_external_events.clear();
     m_have_internal = false;
 
-    m_tn = timeAdvance() + time;
+    Time tn = m_dynamics->timeAdvance();
+
+    if (tn >= 0)
+        return m_tn = tn + time;
+
+    if (-tn < time)
+        throw utils::ModellingError(
+            _("Bad absolute date: %f must be greater than the current date %f"),
+            tn, time);
+
+    m_tn = -tn;
+
     return m_tn;
 }
 
@@ -178,11 +180,23 @@ Time
 Simulator::internalTransition(Time time)
 {
     assert(m_have_internal == true and "Simulator d-int error");
+
     m_dynamics->internalTransition(time);
 
     m_have_internal = false;
 
-    m_tn = timeAdvance() + time;
+    Time tn = m_dynamics->timeAdvance();
+
+    if (tn >= 0)
+        return m_tn = tn + time;
+
+    if (-tn < time)
+        throw utils::ModellingError(
+            _("Bad absolute date: %f must be greater than the current date %f"),
+            tn, time);
+
+    m_tn = -tn;
+
     return m_tn;
 }
 
@@ -190,11 +204,23 @@ Time
 Simulator::externalTransition(Time time)
 {
     assert(not m_external_events.empty() and "Simulator d-ext error");
+
     m_dynamics->externalTransition(m_external_events, time);
 
     m_external_events.clear();
 
-    m_tn = timeAdvance() + time;
+    Time tn = m_dynamics->timeAdvance();
+
+    if (tn >= 0)
+        return m_tn = tn + time;
+
+    if (-tn < time)
+        throw utils::ModellingError(
+            _("Bad absolute date: %f must be greater than the current date %f"),
+            tn, time);
+
+    m_tn = -tn;
+
     return m_tn;
 }
 
