@@ -30,32 +30,48 @@
 #include <vle/devs/Dynamics.hpp>
 
 #include <algorithm>
+#include <functional>
+#include <unordered_set>
 #include <vector>
 
-namespace package {
+namespace vle {
+namespace devs {
 
-struct heap_element
-{
-    vle::devs::Time time;
-    unsigned id;
-};
+using identifier = unsigned int;
 
-struct heap_element_compare
+namespace details {
+
+struct event
 {
-    bool operator()(const heap_element& lhs, const heap_element& rhs) const
+    vle::devs::Time time{ 0 };
+    identifier id{ 0 };
+
+    event() = default;
+
+    event(vle::devs::Time time_, identifier id_)
+      : time(time_)
+      , id(id_)
+    {}
+
+    bool operator==(const event& other) const
     {
-        return lhs.time > rhs.time;
+        return time == other.time and id == other.id;
+    }
+
+    bool operator<(const event& other) const
+    {
+        return time > other.time;
     }
 };
 
-struct Scheduler
+struct scheduler
 {
-    std::vector<heap_element> data;
-    std::vector<unsigned> imminent;
+    std::vector<event> data;
+    std::unordered_set<identifier> imminent;
 
     void make_heap()
     {
-        std::make_heap(data.begin(), data.end(), heap_element_compare());
+        std::make_heap(data.begin(), data.end());
     }
 
     void make_imminent()
@@ -66,61 +82,103 @@ struct Scheduler
             return;
 
         vle::devs::Time t = data.back().time;
-        imminent.emplace_back(data.back().id);
+        imminent.emplace(data.back().id);
         data.pop_back();
 
         while (not data.empty() and t == data.back().time) {
-            imminent.emplace_back(data.back().id);
+            imminent.emplace(data.back().id);
             data.pop_back();
         }
     }
 
-    void remove(const std::vector<unsigned>& models)
+    bool empty() const
     {
-        std::size_t element_to_swap{ data.size() - 1 };
-        std::size_t i{ 0 };
+        return data.empty();
+    }
 
-        while (i <= element_to_swap) {
-            for (auto model : models) {
-                if (data[i].id == model) {
-                    data[i].time = data[element_to_swap].time;
-                    data[i].id = data[element_to_swap].id;
-                    data.pop_back();
-                    element_to_swap--;
-                    --i;
-                    break;
-                }
-            }
-            ++i;
-        }
+    vle::devs::Time top() const
+    {
+        return empty() ? vle::devs::infinity : data.back().time;
+    }
+
+    void remove(identifier id)
+    {
+        auto it =
+          std::find_if(data.begin(), data.end(), [id](const event& e) -> bool {
+              return e.id == id;
+          });
+
+        if (it == data.end())
+            return;
+
+        if (it + 1 != data.end())
+            *it = *(it + 1);
+
+        data.pop_back();
+    }
+
+    template<typename T>
+    void remove(const std::map<identifier, T>& models)
+    {
+        for (const auto& elem : models)
+            remove(elem.first);
 
         make_heap();
     }
 };
 
-/**
- * @brief Wraps a multicomponent system.
- *
- * @details Stores a list of @c vle::devs::Component and a scheduler to
- * perform simulation of a DEVS MultiComponent.
- */
-template<typename State, typename ChangeState, typename ModelList>
+template<typename ModelList>
+auto
+getModelExternalEventList(const ModelList& components,
+                          const vle::devs::ExternalEventList& events)
+  -> std::map<identifier, vle::devs::ExternalEventList>
+{
+    std::map<identifier, vle::devs::ExternalEventList> ret;
+
+    for (const auto& event : events) {
+        const auto& models = components.getInfluenced(event);
+
+        for (auto model : models)
+            ret[model].emplace_back(event);
+    }
+
+    return ret;
+};
+
+} // namespace details
+
+template<typename ChangeState, typename ModelList>
 class MultiComponent : public vle::devs::Dynamics
 {
 public:
-    using state_t = State;
-    using change_t = ChangeState;
-    using modellist_t = ModelList;
+    using change_state = ChangeState;
+    using modellist_type = ModelList;
 
 private:
-    struct react
-    {
-        std::vector<change_t> changes;
-        unsigned id;
-    };
+    mutable details::scheduler m_scheduler;
+    mutable modellist_type m_components;
+    mutable std::map<identifier,
+                     std::vector<std::pair<identifier, change_state>>>
+      m_changes;
+    vle::devs::Time m_current;
 
-    mutable Scheduler m_scheduler;
-    mutable modellist_t m_components;
+    auto push_changes(
+      identifier from,
+      const std::vector<std::pair<identifier, change_state>>& changes) -> void
+    {
+        for (const auto& elem : changes)
+            m_changes[elem.first].push_back(std::make_pair(from, elem.second));
+    }
+
+    auto process_changes() -> void
+    {
+        for (const auto& elem : m_changes) {
+            m_components.react(elem.first, elem.second);
+
+            m_scheduler.remove(elem.first);
+            m_scheduler.imminent.emplace(elem.first);
+        }
+    }
 
 public:
     MultiComponent(const vle::devs::DynamicsInit& init,
@@ -129,14 +187,22 @@ public:
       , m_components(getModel(), events)
     {}
 
-    ~MultiComponent() override = default;
+    ~MultiComponent() final = default;
 
-    vle::devs::Time init(vle::devs::Time time) override
+    /**
+     * @brief Initialize children and returns the duration of the initial
+     *     state.
+     * @details Call the @c init function for each components and returns the
+     *     minimal duration of the most urgent component.
+     *
+     * @param time Current simulation time.
+     * @return The minimal duration of the most urgent component.
+     */
+    vle::devs::Time init(vle::devs::Time time) final
     {
-        auto ret = std::numeric_limits<vle::devs::Time>::max();
-        const auto range = m_components.range();
+        m_current = time;
 
-        for (unsigned i = range.first; i != range.second; ++i) {
+        for (identifier i{ 0 }, e{ m_components.size() }; i != e; ++i) {
             auto tn = m_components.init(i, time);
             if (tn < 0.0)
                 throw vle::utils::ModellingError(
@@ -148,32 +214,69 @@ public:
                   tn);
 
             if (not vle::devs::isInfinity(tn))
-                m_scheduler.data.emplace_back(tn, i);
-
-            ret = std::min(tn, ret);
+                m_scheduler.data.emplace_back(m_current + tn, i);
         }
 
         m_scheduler.make_heap();
 
-        return ret;
+        return m_scheduler.top();
     }
 
+    /**
+     * @brief performs the output function for each imminent component.
+     * @details This function is called before an @c internalTransition or a @c
+     *     confluentTransition. After building the imminent component list with
+     *     the help of the scheduler, output of imminent component are call.
+     *
+     * @param time Current simulation time.
+     * @param [out] output Stores the @c ExternalEvent build by component.
+     */
     void output(vle::devs::Time time,
-                vle::devs::ExternalEventList& output) const override
+                vle::devs::ExternalEventList& output) const final
     {
+#ifndef NDEBUG
+        // Precondition: output with an empty imminent list from scheduler.
+
+        if (not m_scheduler.imminent.empty())
+            throw vle::utils::InternalError("output with empty imminent");
+#endif
+
         m_scheduler.make_imminent();
 
         for (const auto& elem : m_scheduler.imminent)
             m_components.output(elem, time, output);
     }
 
-    vle::devs::Time timeAdvance() const override
+    /**
+     * @brief computes the the duration of the current state.
+     * @details For each component, after an @c internalTransition, @c
+     *     externalTransition, a @c confluentTransition or a @c
+     *     reactTransition, the @c timeAdvance function is called, fill the
+     *     scheduler and return the minimal duration of the current state.
+     *
+     * @param time Current simulation time.
+     * @return The minimal duration of the most urgent component.
+     */
+    vle::devs::Time timeAdvance() const final
     {
-        const auto copy_imminent = m_scheduler.imminent;
-        m_scheduler.imminent.clear();
+#ifndef NDEBUG
+        {
+            // Precondition: the scheduler data must not contains any
+            // identifier from the scheduler imminent list.
 
-        auto ret = std::numeric_limits<vle::devs::Time>::max();
-        for (auto elem : copy_imminent) {
+            for (auto id : m_scheduler.imminent)
+                for (auto elem : m_scheduler.data)
+                    if (id == elem.id)
+                        throw vle::utils::InternalError(
+                          "Scheduler data must not contains any identifier "
+                          "from imminent list");
+        }
+#endif
+
+        // For each component in imminent list, fill the scheduler with
+        // all duration.
+
+        for (auto elem : m_scheduler.imminent) {
             auto tn = m_components.timeAdvance(elem);
             if (tn < 0.0)
                 throw vle::utils::ModellingError(
@@ -185,106 +288,168 @@ public:
                   tn);
 
             if (not vle::devs::isInfinity(tn))
-                m_scheduler.data.emplace_back(tn, elem);
-
-            ret = std::min(tn, ret);
+                m_scheduler.data.emplace_back(m_current + tn, elem);
         }
 
         m_scheduler.make_heap();
+        m_scheduler.imminent.clear();
 
-        return ret;
+        return m_scheduler.top() - m_current;
     }
 
-    void internalTransition(vle::devs::Time time) override
+    /**
+     * @brief performs the internalTransition for each imminent component.
+     * @details Use the scheduler imminent list produced by the @c output
+     *     function and call the internalTransition for each component.
+     *
+     * @param time Current simulation time.
+     */
+    void internalTransition(vle::devs::Time time) final
     {
-        //
+        m_current = time;
+
+        printf("internalTransition: %f\n", time);
+
         // m_scheduler.imminent is filled by the previous call to the output
         // function that fills the imminent list.
-        //
 
+        m_changes.clear();
         for (const auto& elem : m_scheduler.imminent)
-            m_components.internalTransition(elem, time);
+            push_changes(elem, m_components.internalTransition(elem, time));
+
+        process_changes();
     }
 
+    /**
+     * @brief performs the externalTransition for each component.
+     * @details First, need to remove influenced component from scheduler
+     *     then, build a list of event per component to perform an
+     *     externalTransition with the correct bag.
+     *
+     * @param events The list of external events.
+     * @param time Current simulation time
+     */
     void externalTransition(const vle::devs::ExternalEventList& events,
-                            vle::devs::Time time) override
+                            vle::devs::Time time) final
     {
-        for (const auto& event : events) {
+        m_current = time;
 
-            auto models = m_components.influenced(event.getPortName());
+        printf("MC externalTransition: %f\n", time);
 
-            m_scheduler.remove(models);
-            m_scheduler.imminent.insert(
-              m_scheduler.imminent.end(), models.begin(), models.end());
+        // Get the perturbed component from the @c ModelList.
 
-            for (auto model : models)
-                m_components.externalTransition(model, event, time);
+        auto map = details::getModelExternalEventList(m_components, events);
+
+        // Remove these models from the scheduler data and prepare the time
+        // advance function call be filling the scheduler's imminent list.
+
+        m_scheduler.remove(map);
+        m_scheduler.imminent.clear();
+        m_scheduler.imminent.reserve(map.size());
+
+        m_changes.clear();
+        for (const auto& model : map) {
+            push_changes(model.first,
+                         m_components.externalTransition(
+                           model.first, model.second, time));
+            m_scheduler.imminent.emplace(model.first);
         }
+
+        process_changes();
+        printf("MC externalTransition finished\n");
     }
 
-    void confluentTransitions(
-      vle::devs::Time time,
-      const vle::devs::ExternalEventList& extEventlist) override
+    /**
+     * @brief performs the confluentTransition.
+     * @details This function performs a mix between @c internalTransition and
+     *     @c externalTransition. First, need to get perturbed components, get
+     *         imminent component then call correctly the @c internaTransition
+     *         for the components that appear only in the imminent list, @c
+     *         externalTransition that appear only in the perturbed component
+     *         and @c confluentTransition from component that appear in both
+     *         imminent and perturbed list.
+     *
+     * @param time Current simulation time
+     * @param events The list of external events.
+     */
+    void confluentTransitions(vle::devs::Time time,
+                              const vle::devs::ExternalEventList& events) final
     {
-        auto models = m_components.getInfluencees(extEventlist);
+        m_current = time;
 
-        //
-        // At least on component is in conflict (internal and external event
+        printf("confluentTransitions: %f\n", time);
+
+        // m_scheduler.imminent is filled by the previous call to the output
+        // function that fills the imminent list. Get the perturbed component
+        // from the @c ModelList and remove these models from the scheduler
+        // data.
+
+        auto map = details::getModelExternalEventList(m_components, events);
+        m_scheduler.remove(map);
+
+        // At least one component is in conflict (internal and external event
         // occurred at the same time). Try to found this or these components
         // and call the internal, confluent or external transition.
-        //
 
-        m_scheduler.make_imminent();
-        m_scheduler.remove(models);
+        m_changes.clear();
+        for (auto id : m_scheduler.imminent) {
+            auto it = map.find(id);
 
-        auto imm = m_scheduler.imminent;
+            // The component @c id appears both in the imminent and the
+            // perturbed list, call confluent transition otherwise, this
+            // component must made an internal transition
 
-        while (not imm.empty()) {
-            auto it = std::find_if(models.begin(),
-                                   models.end(),
-                                   std::equal_to<unsigned>(imm.back()));
+            if (it != map.end()) {
+                push_changes(
+                  id, m_components.confluentTransitions(id, time, events));
 
-            //
-            // @c `it' is in conflict from the imminent list and from the
-            //     perturbed model list. Call confluent transition.
-            //
+                // Remove this element from the imminent list to avoid multiple
+                // id in imminent list.
 
-            if (it != models.end()) {
-                m_components.confluentTransitions(
-                  imm.back(), time, extEventlist);
-
-                *it = models.back();
-                models.pop_back();
+                map.erase(it);
             } else {
-                m_components.internalTransition(imm.back(), time);
+                push_changes(id, m_components.internalTransition(id, time));
             }
-
-            imm.pop_back();
         }
 
-        //
-        // If their is still model in influenced list, call external
-        // transition.
-        //
+        // If the perturbed component list is not empty, these component must
+        // perform an external transition.
 
-        for (auto model : models)
-            m_components.externalTransition(model, extEventlist, time);
+        for (const auto& model : map) {
+            push_changes(model.first,
+                         m_components.externalTransition(
+                           model.first, model.second, time));
+            m_scheduler.imminent.emplace(model.first);
+        }
 
-        //
-        // Finally, compute the imminent list to be call by the time advance
-        // function.
-        //
-
-        m_scheduler.imminent.insert(
-          m_scheduler.imminent.end(), models.begin(), models.end());
+        process_changes();
     }
 
-    void finish() override
+    /**
+     * @brief Process an observation event.
+     * @details Relays the observation event to the @c ModelList::observation()
+     *     function.
+     *
+     * @param event The observation that embeds observation port and view.
+     * @return A value related to the observation event.
+     */
+    std::unique_ptr<vle::value::Value> observation(
+      const vle::devs::ObservationEvent& event) const final
     {
-        m_components.finish();
+        return m_components.observation(event);
+    }
+
+    /**
+     * @brief Call finish for all component
+     * @details End of simulation, time to clean-up.
+     */
+    void finish() final
+    {
+        for (identifier i{ 0 }, e{ m_components.size() }; i != e; ++i)
+            m_components.finish(i);
     }
 };
-
-} // namespace package
+}
+} // namespace vle devs
 
 #endif
