@@ -1,0 +1,12 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=@CMAKE_INSTALL_PREFIX@
+libdir=@CMAKE_INSTALL_LIBDIR@
+includedir=@CMAKE_INSTALL_INCLUDEDIR@
+
+Name: vle
+Version: @VERSION@
+Description: VLE multimodelling and Simulation tools
+
+Requires: expat
+Libs:   -L${libdir} -lvle-@VLE_ABI@
+Cflags: -I${includedir}/vle-@VLE_ABI@

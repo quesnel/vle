@@ -82,27 +82,4 @@ install(FILES ${gvle_widgets_SOURCES_HPP}
 install(TARGETS gvlelib RUNTIME DESTINATION bin LIBRARY DESTINATION
   lib ARCHIVE DESTINATION lib)
 
-#
-# Configure the file gvle.pc.in to produce in the binary directory a
-# filled pkg-config script gvle.pc.
-#
-
-if (WIN32)
-  set(VLE_PKGCONFIG_PREFIXPATH "/target")
-  set(VLE_PKGCONFIG_BOOSTINCLUDE_DIRS "\${includedir}")
-  set(VLE_PKGCONFIG_LIBDIR "bin")
-  set(VLE_GVLE_LIBRARY "-lgvle-${VLE_VERSION_SHORT}")
-else()
-  set(VLE_PKGCONFIG_PREFIXPATH "${CMAKE_INSTALL_PREFIX}")
-  set(VLE_PKGCONFIG_BOOSTINCLUDE_DIRS "${Boost_INCLUDE_DIRS}")
-  set(VLE_PKGCONFIG_LIBDIR "lib")
-  set(VLE_GVLE_LIBRARY "")
-endif()
-
-configure_file(gvle.pc.in
-  ${VLE_BINARY_DIR}/src/vle/gvle-${VLE_VERSION_SHORT}.pc @ONLY)
-
-install(FILES ${VLE_BINARY_DIR}/src/vle/gvle-${VLE_VERSION_SHORT}.pc
-  DESTINATION lib/pkgconfig)
-
 add_subdirectory(test)
