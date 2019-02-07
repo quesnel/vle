@@ -16,7 +16,6 @@ set(private_libvle_source
   devs/ExternalEvent.cpp
   devs/ExternalEventList.cpp
   devs/InitEventList.cpp
-  devs/InternalEvent.cpp
   devs/InternalEvent.hpp
   devs/ModelFactory.cpp
   devs/ModelFactory.hpp
@@ -32,23 +31,6 @@ set(private_libvle_source
   devs/ViewEvent.cpp
   devs/ViewEvent.hpp
   devs/View.hpp
-  gvle/aboutbox.cpp
-  gvle/dom_tools.cpp
-  gvle/dom_tools.hpp
-  gvle/gvle_file.cpp
-  gvle/gvle_plugins.cpp
-  gvle/gvle_widgets.cpp
-  gvle/gvle_win.cpp
-  gvle/helpbrowser.cpp
-  gvle/help.cpp
-  gvle/logger.cpp
-  gvle/notification.cpp
-  gvle/vle_dom.cpp
-  gvle/vle_dom.hpp
-  gvle/vlevpz.cpp
-  gvle/vlevpz.hpp
-  gvle/widgets/GvleCodeEdit.cpp
-  gvle/widgets/GvleTextEdit.cpp
   manager/ExperimentGenerator.cpp
   manager/Manager.cpp
   manager/Simulation.cpp
@@ -65,13 +47,7 @@ set(private_libvle_source
   utils/details/PackageManager.hpp
   utils/details/PackageParser.cpp
   utils/details/PackageParser.hpp
-  utils/details/PathUnix.cpp
-  utils/details/PathWin32.cpp
   utils/details/ShellUtils.hpp
-  utils/details/SpawnUnix.cpp
-  utils/details/SpawnWin.cpp
-  utils/details/UtilsWin.cpp
-  utils/details/UtilsWin.hpp
   utils/DownloadManager.cpp
   utils/Exception.cpp
   utils/Filesystem.cpp
@@ -123,6 +99,39 @@ set(private_libvle_source
   vpz/Views.cpp
   vpz/Vpz.cpp)
 
+if (WIN32)
+  list(APPEND private_libvle_source
+    utils/details/PathWin32.cpp
+    utils/details/SpawnWin.cpp
+    utils/details/UtilsWin.cpp
+    utils/details/UtilsWin.hpp)
+else ()
+  list(APPEND private_libvle_source
+    utils/details/PathUnix.cpp
+    utils/details/SpawnUnix.cpp)
+endif()
+
+if (WITH_GVLE)
+  list(APPEND private_libvle_source
+    gvle/aboutbox.ui
+    gvle/gvle_win.ui
+    gvle/help.ui
+    gvle/aboutbox.cpp
+    gvle/dom_tools.cpp
+    gvle/gvle_file.cpp
+    gvle/gvle_plugins.cpp
+    gvle/gvle_widgets.cpp
+    gvle/gvle_win.cpp
+    gvle/helpbrowser.cpp
+    gvle/help.cpp
+    gvle/logger.cpp
+    gvle/notification.cpp
+    gvle/vle_dom.cpp
+    gvle/vlevpz.cpp
+    gvle/widgets/GvleCodeEdit.cpp
+    gvle/widgets/GvleTextEdit.cpp)
+endif ()
+
 add_library(libvle ${private_libvle_source})
 
 option(BUILD_SHARED_LIBS "Build shared library" ON)
@@ -131,18 +140,25 @@ generate_export_header(libvle
     EXPORT_MACRO_NAME VLE_API
     EXPORT_FILE_NAME ${CMAKE_BINARY_DIR}/src/DllDefines.hpp)
 
-target_compile_features(libvle PUBLIC cxx_std_14)
 target_compile_options(libvle
   PRIVATE
-  $<$<BOOL:${WITH_FULL_OPTIMIZATION}>:BARYONYX_FULL_OPTIMIZATION>
-  $<$<BOOL:${WITH_DEBUG}>:BARYONYX_ENABLE_DEBUG>
-  $<$<BOOL:${WITH_LOG}>:BARYONYX_ENABLE_LOG>
-  $<$<BOOL:${NLOPT_FOUND}>:BARYONYX_HAVE_NLOPT>
+  $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:
+      -pipe -march=native
+      $<$<CONFIG:Debug>:-O0 -Wall -Wextra>>
+  $<$<CXX_COMPILER_ID:MSVC>:
+      $<$<CONFIG:Debug>:/Od /Wall /Zi>>)
+
+target_compile_definitions(libvle
+  PRIVATE
+  $<$<BOOL:${WITH_FULL_OPTIMIZATION}>:VLE_FULL_OPTIMIZATION>
+  $<$<NOT:$<BOOL:${WITH_DEBUG}>>:VLE_DISABLE_DEBUG>
   $<$<CXX_COMPILER_ID:MSVC>:_CRT_SECURE_NO_WARNINGS>
   $<$<CXX_COMPILER_ID:MSVC>:_SCL_SECURE_NO_WARNINGS>
   VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
   VERSION_MINOR=${PROJECT_VERSION_MINOR}
   VERSION_PATCH=${PROJECT_VERSION_PATCH})
+
+message(STATUS "source dir ${CMAKE_SOURCE_DIR}/include")
 
 target_include_directories(libvle
   PUBLIC
@@ -153,6 +169,12 @@ target_include_directories(libvle
   ${CMAKE_CURRENT_SOURCE_DIR})
 
 set_target_properties(libvle PROPERTIES
+  VERSION 0
+  OUTPUT_NAME "vle-${VLE_VERSION_SHORT}"
+  CXX_VISIBILITY_PRESET hidden
+  VISIBILITY_INLINES_HIDDEN ON
+  CXX_STANDARD 14
+  CXX_STANDARD_REQUIRED ON
   ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
   LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
   RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -161,16 +183,20 @@ target_link_libraries(libvle
   PRIVATE
   threads
   Boost::boost
-  EXPAT::EXPAT)
-
+  EXPAT::EXPAT
+  $<$<BOOL:${WITH_GVLE}>:Qt5::Widgets>
+  $<$<BOOL:${WITH_GVLE}>:Qt5::Xml>
+  $<$<BOOL:${WITH_GVLE}>:Qt5::Gui>
+  $<$<BOOL:${WITH_GVLE}>:Qt5::Help>
+  $<$<BOOL:${WITH_GVLE}>:Qt5::PrintSupport>
+  $<$<BOOL:${WITH_GVLE}>:Qt5::Svg>)
 
 install(TARGETS libvle
     EXPORT libvle-targets
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    INCLUDES DESTINATION ${LIBLEGACY_INCLUDE_DIRS}
-)
+    INCLUDES DESTINATION ${LIBLEGACY_INCLUDE_DIRS})
 
 install(DIRECTORY
   ${CMAKE_SOURCE_DIR}/include/vle
@@ -211,7 +237,7 @@ install(FILES
     ${CMAKE_BINARY_DIR}/src/version.hpp
     ${CMAKE_BINARY_DIR}/src/DllDefines.hpp
     DESTINATION
-    ${CMAKE_INSTALL_INCLUDEDIR}/vle-${VLE_ABI}})
+    ${CMAKE_INSTALL_INCLUDEDIR}/vle-${VLE_ABI})
 
 # add_subdirectory(pkgs)
 # add_subdirectory(apps)

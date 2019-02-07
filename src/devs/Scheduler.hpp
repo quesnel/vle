@@ -27,13 +27,16 @@
 #ifndef VLE_DEVS_SCHEDULER_HPP
 #define VLE_DEVS_SCHEDULER_HPP
 
+#include <vle/DllDefines.hpp>
+#include <vle/devs/ExternalEvent.hpp>
+
+#include "devs/ViewEvent.hpp"
+
 #include <boost/heap/fibonacci_heap.hpp>
+
 #include <map>
 #include <unordered_set>
 #include <vector>
-#include <vle/DllDefines.hpp>
-#include <vle/devs/ExternalEvent.hpp>
-#include <vle/devs/ViewEvent.hpp>
 
 namespace vle {
 namespace devs {

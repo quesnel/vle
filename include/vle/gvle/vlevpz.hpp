@@ -27,9 +27,8 @@
 
 #include <QDebug>
 
-#include "gvle_plugins.h"
-#include "logger.h"
-#include "vle_dom.hpp"
+#include "gvle/gvle_plugins.h"
+#include "gvle/logger.h"
 #include <QDateTimeEdit>
 #include <QDomDocument>
 #include <QDomElement>
@@ -43,6 +42,7 @@
 #include <QStyleOption>
 #include <QWidget>
 #include <QXmlDefaultHandler>
+#include <vle/gvle/vle_dom.hpp>
 #include <vle/value/Map.hpp>
 #include <vle/value/Value.hpp>
 

@@ -27,9 +27,10 @@
 #ifndef DEVS_INTERNALEVENT_HPP
 #define DEVS_INTERNALEVENT_HPP
 
-#include <vector>
 #include <vle/DllDefines.hpp>
 #include <vle/devs/Time.hpp>
+
+#include <vector>
 
 namespace vle {
 namespace devs {

@@ -27,7 +27,6 @@
 #ifndef VLE_SAX_STACK_VALUE_HPP
 #define VLE_SAX_STACK_VALUE_HPP
 
-#include <stack>
 #include <vle/DllDefines.hpp>
 #include <vle/value/Boolean.hpp>
 #include <vle/value/Double.hpp>
@@ -40,6 +39,8 @@
 #include <vle/value/Table.hpp>
 #include <vle/value/Tuple.hpp>
 #include <vle/value/XML.hpp>
+
+#include <stack>
 
 namespace vle {
 namespace vpz {

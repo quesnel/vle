@@ -27,12 +27,14 @@
 #ifndef VLE_VPZ_SAXPARSER_HPP
 #define VLE_VPZ_SAXPARSER_HPP
 
-#include <map>
 #include <vle/DllDefines.hpp>
 #include <vle/value/Value.hpp>
 #include <vle/vpz/Base.hpp>
-#include <vle/vpz/SaxStackValue.hpp>
-#include <vle/vpz/SaxStackVpz.hpp>
+
+#include "vpz/SaxStackValue.hpp"
+#include "vpz/SaxStackVpz.hpp"
+
+#include <map>
 
 namespace vle {
 namespace vpz {

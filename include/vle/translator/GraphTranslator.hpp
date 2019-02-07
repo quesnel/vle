@@ -27,12 +27,14 @@
 #ifndef VLE_TRANSLATOR_GRAPHTRANSLATOR_HPP
 #define VLE_TRANSLATOR_GRAPHTRANSLATOR_HPP
 
-#include <array>
-#include <random>
 #include <vle/DllDefines.hpp>
 #include <vle/devs/Executive.hpp>
 #include <vle/utils/Array.hpp>
 #include <vle/vpz/Condition.hpp>
+
+#include <array>
+#include <functional>
+#include <random>
 
 namespace vle {
 namespace translator {

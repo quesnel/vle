@@ -30,13 +30,14 @@
 #include <vle/DllDefines.hpp>
 #include <vle/devs/ExternalEventList.hpp>
 #include <vle/devs/InitEventList.hpp>
-#include <vle/devs/View.hpp>
 #include <vle/utils/Context.hpp>
 #include <vle/vpz/BaseModel.hpp>
 #include <vle/vpz/Classes.hpp>
 #include <vle/vpz/Dynamics.hpp>
 #include <vle/vpz/Experiment.hpp>
 #include <vle/vpz/Model.hpp>
+
+#include "devs/View.hpp"
 
 namespace vle {
 namespace devs {

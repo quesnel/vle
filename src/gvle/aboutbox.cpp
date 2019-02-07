@@ -22,11 +22,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "vle/gvle/aboutbox.h"
+#include <vle/vle.hpp>
+
+#include "gvle/aboutbox.h"
 #include "ui_aboutbox.h"
 #include <QString>
 #include <QTextStream>
-#include <vle/vle.hpp>
 
 AboutBox::AboutBox(QWidget* parent)
   : QDialog(parent)
@@ -39,9 +40,6 @@ AboutBox::AboutBox(QWidget* parent)
     QString str;
     QTextStream(&str) << "VLE " << std::get<0>(vers) << '.'
                       << std::get<1>(vers) << '.' << std::get<2>(vers);
-
-    if (not std::get<3>(vers).empty())
-        QTextStream(&str) << '-' << std::get<3>(vers).c_str();
 
     ui->label_2->setText(str);
 }

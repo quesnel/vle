@@ -38,7 +38,7 @@ namespace vle {
  * integer version and the extra version as a string (may be empty).
  * @return A @c std::tuple.
  */
-std::tuple<int, int, int, std::string> VLE_API
+std::tuple<int, int, int> VLE_API
 version();
 
 /**

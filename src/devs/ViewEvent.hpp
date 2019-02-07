@@ -27,9 +27,11 @@
 #ifndef VLE_DEVS_VIEWEVENT_HPP
 #define VLE_DEVS_VIEWEVENT_HPP 1
 
-#include <cassert>
 #include <vle/DllDefines.hpp>
-#include <vle/devs/View.hpp>
+
+#include "devs/View.hpp"
+
+#include <cassert>
 
 namespace vle {
 namespace devs {
