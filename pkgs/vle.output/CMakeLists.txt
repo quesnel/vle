@@ -5,8 +5,8 @@ install(FILES
 Declare(output pkg-dummy vle.output dummy Dummy.cpp)
 Declare(output pkg-file vle.output file File.cpp FileType.cpp)
 Declare(output pkg-storage vle.output storage Storage.cpp)
-Declare(output pkg-console vle.output dummy Console.cpp)
+Declare(output pkg-console vle.output console Console.cpp)
 
-if (${VLE_HAVE_GVLE})
+if (VLE_HAVE_GVLE)
   add_subdirectory(gvle)
 endif()

@@ -27,8 +27,6 @@
 
 #include <QDebug>
 
-#include "gvle/gvle_plugins.h"
-#include "gvle/logger.h"
 #include <QDateTimeEdit>
 #include <QDomDocument>
 #include <QDomElement>
@@ -42,9 +40,13 @@
 #include <QStyleOption>
 #include <QWidget>
 #include <QXmlDefaultHandler>
+
 #include <vle/gvle/vle_dom.hpp>
+#include <vle/gvle/gvle_plugins.h>
+#include <vle/gvle/logger.h>
 #include <vle/value/Map.hpp>
 #include <vle/value/Value.hpp>
+#include <vle/DllDefines.hpp>
 
 namespace vle {
 namespace gvle {
@@ -52,7 +54,7 @@ namespace gvle {
 /**
  * @brief Main class
  */
-class vleVpz : public QObject
+class VLE_API vleVpz : public QObject
 {
     Q_OBJECT
 public:
@@ -1325,6 +1327,7 @@ private:
     gvle_plugins* mGvlePlugins;
     int maxPrecision;
 };
+
 }
 } // namepsaces
 

@@ -30,6 +30,8 @@
 #include <QPluginLoader>
 #include <QStringList>
 
+#include <vle/DllDefines.hpp>
+
 #ifndef Q_MOC_RUN
 #include <vle/utils/Context.hpp>
 #endif
@@ -42,7 +44,7 @@ class PluginExpCond;
 class PluginSimPanel;
 class PluginMainPanel;
 
-struct gvleplug
+struct VLE_API gvleplug
 {
     enum GVLE_PLUGIN_TYPE
     {
@@ -64,7 +66,7 @@ struct gvleplug
     QPluginLoader* loader;
 };
 
-class gvle_plugins : public QObject
+class VLE_API gvle_plugins : public QObject
 {
     Q_OBJECT
 

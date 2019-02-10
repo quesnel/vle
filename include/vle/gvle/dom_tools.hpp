@@ -40,8 +40,10 @@
 #include <QStyleOption>
 #include <QWidget>
 #include <QXmlDefaultHandler>
+
 #include <vle/value/Map.hpp>
 #include <vle/value/Value.hpp>
+#include <vle/DllDefines.hpp>
 
 namespace vle {
 namespace gvle {
@@ -50,7 +52,7 @@ namespace gvle {
  * @brief DomFunctions provides static functions to handle Dom documents
  * (for undo/redo)
  */
-class DomFunctions
+class VLE_API DomFunctions
 {
 public:
     DomFunctions();
@@ -148,12 +150,13 @@ public:
  * @brief DomObject is an interface to be used into a DomDiffStack
  * (for undo/redo)
  */
-class DomObject
+class VLE_API DomObject
 {
 public:
     DomObject(QDomDocument* doc)
       : mDoc(doc)
     {}
+
     virtual ~DomObject()
     {}
     virtual QString getXQuery(QDomNode node) = 0;
@@ -166,7 +169,7 @@ public:
  * @brief DomDiffStack handle a stack of undo/redo objects based on the copy
  * of registered QDomNode (via snapshots)
  */
-class DomDiffStack : public QObject
+class VLE_API DomDiffStack : public QObject
 {
     Q_OBJECT
 public:
@@ -254,6 +257,7 @@ signals:
     void snapshotVdo(QDomNode snapshot, bool isMerged);
     void undoAvailable(bool);
 };
+
 }
 } // namepsaces
 

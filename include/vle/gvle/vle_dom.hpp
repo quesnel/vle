@@ -32,6 +32,8 @@
 #include <QDomElement>
 #include <QDomNamedNodeMap>
 #include <QString>
+
+#include <vle/DllDefines.hpp>
 #include <vle/value/Value.hpp>
 
 namespace vle {
@@ -40,7 +42,7 @@ namespace gvle {
 /**
  * @brief Class that implements DomObject especially for vleVpz
  */
-class vleDomVpz : public DomObject
+class VLE_API vleDomVpz : public DomObject
 {
 public:
     vleDomVpz(QDomDocument* doc);
@@ -53,7 +55,7 @@ public:
 /**
  * @brief Class that implements DomObject especially for vleVpz metadata
  */
-class vleDomVpm : public DomObject
+class VLE_API vleDomVpm : public DomObject
 {
 public:
     vleDomVpm(QDomDocument* doc);
@@ -67,7 +69,7 @@ public:
  * @brief Class that provides static functions to handle vpz files.
  * snapshots can be performed if a DomDiffStach is provided by the user.
  */
-class vleDomStatic
+class VLE_API vleDomStatic
 {
 public:
     vleDomStatic();
@@ -438,6 +440,7 @@ public:
      */
     static QStringList getViewTypeToView(const QDomNode& atom);
 };
+
 }
 } // namepsaces
 

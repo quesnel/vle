@@ -29,12 +29,13 @@
 #include <QPlainTextEdit>
 #include <QTime>
 
+#include <vle/DllDefines.hpp>
 #include <vle/utils/Context.hpp>
 
 namespace vle {
 namespace gvle {
 
-class Logger : public QObject
+class VLE_API Logger : public QObject
 {
     Q_OBJECT
 public:
@@ -56,7 +57,7 @@ private:
 };
 
 /*******************************************/
-struct Logger_ctx : public vle::utils::Context::LogFunctor
+struct VLE_API Logger_ctx : public vle::utils::Context::LogFunctor
 {
 public:
     Logger_ctx(Logger* mainWin);
