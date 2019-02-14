@@ -25,6 +25,7 @@
  */
 
 #include <iostream>
+
 #include <vle/utils/details/ShellUtils.hpp>
 #include <vle/utils/unit-test.hpp>
 #include <vle/vle.hpp>

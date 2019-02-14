@@ -117,7 +117,7 @@ option(BUILD_SHARED_LIBS "Build shared library" ON)
 include(GenerateExportHeader)
 generate_export_header(libvle
     EXPORT_MACRO_NAME VLE_API
-    EXPORT_FILE_NAME ${CMAKE_BINARY_DIR}/src/DllDefines.hpp)
+    EXPORT_FILE_NAME ${CMAKE_BINARY_DIR}/include/vle/DllDefines.hpp)
 
 target_compile_options(libvle
   PRIVATE
@@ -193,11 +193,11 @@ math(EXPR VLE_MACRO_VERSION
     "${VLE_MAJOR} * 100000 + ${VLE_MINOR} * 100 + ${VLE_PATCH}")
 
 configure_file(version.hpp.in
-    ${CMAKE_BINARY_DIR}/src/version.hpp
+    ${CMAKE_BINARY_DIR}/include/vle/version.hpp
     @ONLY)
 
 install(FILES
-    ${CMAKE_BINARY_DIR}/src/version.hpp
-    ${CMAKE_BINARY_DIR}/src/DllDefines.hpp
+    ${CMAKE_BINARY_DIR}/include/vle/version.hpp
+    ${CMAKE_BINARY_DIR}/include/vle/DllDefines.hpp
     DESTINATION
     ${CMAKE_INSTALL_INCLUDEDIR}/vle-${VLE_ABI}/vle)

@@ -27,7 +27,8 @@
 #include <fstream>
 #include <limits>
 #include <stdexcept>
-#include <vle/devs/Simulator.hpp>
+
+#include <vle/devs/Time.hpp>
 #include <vle/utils/unit-test.hpp>
 
 using namespace vle;

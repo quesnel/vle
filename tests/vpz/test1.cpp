@@ -41,7 +41,6 @@
 #include <vle/value/Tuple.hpp>
 #include <vle/value/XML.hpp>
 #include <vle/vle.hpp>
-#include <vle/vpz/SaxParser.hpp>
 #include <vle/vpz/Vpz.hpp>
 
 using namespace vle;

@@ -24,14 +24,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "dom_tools.hpp"
+#include "vlevpz.hpp"
+
 #include <boost/lexical_cast.hpp>
 #include <fstream>
 #include <iostream>
 #include <limits>
 #include <stdexcept>
-#include <vle/devs/Simulator.hpp>
-#include <vle/gvle/dom_tools.hpp>
-#include <vle/gvle/vlevpz.hpp>
 #include <vle/utils/unit-test.hpp>
 #include <vle/value/Boolean.hpp>
 #include <vle/value/Double.hpp>

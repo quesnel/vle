@@ -48,7 +48,6 @@
 #include <vle/utils/RemoteManager.hpp>
 #include <vle/utils/Spawn.hpp>
 #include <vle/utils/Tools.hpp>
-#include <vle/utils/i18n.hpp>
 #include <vle/utils/unit-test.hpp>
 #include <vle/vle.hpp>
 

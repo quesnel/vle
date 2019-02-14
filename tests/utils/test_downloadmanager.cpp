@@ -24,13 +24,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <boost/version.hpp>
-#include <memory>
 #include <vle/utils/Context.hpp>
 #include <vle/utils/DownloadManager.hpp>
 #include <vle/utils/Filesystem.hpp>
 #include <vle/utils/unit-test.hpp>
 #include <vle/vle.hpp>
+
+#include <boost/version.hpp>
+
+#include <memory>
 
 using namespace vle;
 
