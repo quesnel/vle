@@ -43,7 +43,7 @@ class Simulator;
  * scheduler of VLE. To speed-up the simulation an \e InternalEvent can be
  * invalidate.
  */
-class VLE_LOCAL InternalEvent
+class InternalEvent
 {
 public:
     /**

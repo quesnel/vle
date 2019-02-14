@@ -34,7 +34,6 @@
 #include <vle/value/Matrix.hpp>
 #include <vle/value/Set.hpp>
 #include <vle/value/String.hpp>
-#include <vle/vpz/SaxParser.hpp>
 
 #include <boost/algorithm/string.hpp>
 
@@ -936,8 +935,7 @@ public:
                 simulate(result, first++);
             } else { // use vpz
                 vle::vpz::Vpz temp;
-                vle::vpz::SaxParser parser(temp);
-                parser.parseMemory(buffer);
+                temp.parseMemory(buffer);
                 vle::vpz::Conditions conds =
                   temp.project().experiment().conditions();
                 std::vector<std::string> condNames = conds.conditionnames();

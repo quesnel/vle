@@ -50,7 +50,7 @@ class Dynamics;
  * @brief Read simulations plugin from models directories and manage models
  * classes.
  */
-class VLE_LOCAL ModelFactory
+class ModelFactory
 {
 public:
     /**

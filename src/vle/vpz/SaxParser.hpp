@@ -46,7 +46,7 @@ class BaseModel;
  * @brief The SaxParser is a C/C++ interface between the libexpat and the VLE
  *     classes vpz.
  */
-class VLE_LOCAL SaxParser
+class SaxParser
 {
 public:
     /**
@@ -299,7 +299,7 @@ private:
  * boolean
  * @return The boolean.
  */
-VLE_LOCAL bool
+bool
 charToBoolean(const char* str);
 
 /**
@@ -309,7 +309,7 @@ charToBoolean(const char* str);
  * long integer.
  * @return The long integer.
  */
-VLE_LOCAL long int
+long int
 charToInt(const char* str);
 
 /**
@@ -319,7 +319,7 @@ charToInt(const char* str);
  * unsigned long integer.
  * @return The unsigned long integer.
  */
-VLE_LOCAL unsigned long int
+unsigned long int
 charToUnsignedInt(const char* str);
 
 /**
@@ -329,7 +329,7 @@ charToUnsignedInt(const char* str);
  * double.
  * @return The double.
  */
-VLE_LOCAL double
+double
 charToDouble(const char* str);
 }
 } // namespace vle vpz

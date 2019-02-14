@@ -48,7 +48,7 @@ class Executive;
  * model.
  *
  */
-class VLE_LOCAL Coordinator
+class Coordinator
 {
 public:
     Coordinator(utils::ContextPtr context,

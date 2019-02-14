@@ -1,5 +1,5 @@
 add_subdirectory(vle)
 
-if (VLE_HAVE_GVLE)
+if (WITH_GVLE)
   add_subdirectory(gvle)
 endif ()

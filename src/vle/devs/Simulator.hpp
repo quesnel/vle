@@ -48,7 +48,7 @@ class Dynamics;
  * represent the DEVS simulator.
  *
  */
-class VLE_LOCAL Simulator
+class Simulator
 {
 public:
     typedef std::pair<Simulator*, std::string> TargetSimulator;

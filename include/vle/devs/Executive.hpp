@@ -38,16 +38,16 @@
 #define DECLARE_EXECUTIVE(mdl)                                                \
     extern "C"                                                                \
     {                                                                         \
-        VLE_MODULE vle::devs::Dynamics* vle_make_new_executive(               \
+        VLE_API vle::devs::Dynamics* vle_make_new_executive(                  \
           const vle::devs::ExecutiveInit& init,                               \
           const vle::devs::InitEventList& events)                             \
         {                                                                     \
             return new mdl(init, events);                                     \
         }                                                                     \
                                                                               \
-        VLE_MODULE void vle_api_level(vle::uint32_t* major,                   \
-                                      vle::uint32_t* minor,                   \
-                                      vle::uint32_t* patch)                   \
+        VLE_API void vle_api_level(vle::uint32_t* major,                      \
+                                   vle::uint32_t* minor,                      \
+                                   vle::uint32_t* patch)                      \
         {                                                                     \
             auto version = vle::version();                                    \
             *major = std::get<0>(version);                                    \

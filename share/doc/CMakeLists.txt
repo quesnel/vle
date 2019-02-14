@@ -1,9 +1,9 @@
 if (${ASCIIDOCTOR_EXECUTABLE})
   set(VLE_DOCDIR ${CMAKE_CURRENT_SOURCE_DIR})
   set(VLE_STYLESHEET ${VLE_DOCDIR}/stylesheet.css)
-  set(VLE_TITLE ${VLE_LOCALE_NAME})
+  set(VLE_TITLE ${E_NAME})
   set(VLE_A2M ${ASCIIDOCTOR_EXECUTABLE} -b manpage -amanmanual='${VLE_TITLE}')
-  set(VLE_A2H ${ASCIIDOCTOR_EXECUTABLE} -d manpage -b html5 -a stylesheeet=${VLE_STYLESHEET} -aversion-label=${VLE_LOCALE_NAME} -arevnumber=${VLE_LOCALE_NAME})
+  set(VLE_A2H ${ASCIIDOCTOR_EXECUTABLE} -d manpage -b html5 -a stylesheeet=${VLE_STYLESHEET} -aversion-label=${E_NAME} -arevnumber=${E_NAME})
 
   macro (add_man NAME SECT)
     add_custom_command(

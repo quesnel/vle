@@ -44,7 +44,7 @@ class Class;
 /**
  * @brief The SaxStackVpz is used to construct the vpz::Base hierarchy.
  */
-class VLE_LOCAL SaxStackVpz
+class SaxStackVpz
 {
 public:
     /**

@@ -390,40 +390,40 @@ public:
 extern "C"
 {
 
-    VLE_MODULE vle::devs::Dynamics* make_new_model(
+    VLE_API vle::devs::Dynamics* make_new_model(
       const vle::devs::DynamicsInit& init,
       const vle::devs::InitEventList& events)
     {
         return new ::Model(init, events);
     }
 
-    VLE_MODULE vle::devs::Dynamics* make_new_model_dbg(
+    VLE_API vle::devs::Dynamics* make_new_model_dbg(
       const vle::devs::DynamicsInit& init,
       const vle::devs::InitEventList& events)
     {
         return new ::ModelDbg(init, events);
     }
 
-    VLE_MODULE vle::devs::Dynamics* exe_make_new_exe(
+    VLE_API vle::devs::Dynamics* exe_make_new_exe(
       const vle::devs::ExecutiveInit& init,
       const vle::devs::InitEventList& events)
     {
         return new ::Exe(init, events);
     }
 
-    VLE_MODULE vle::devs::Dynamics* make_new_observation_model(
+    VLE_API vle::devs::Dynamics* make_new_observation_model(
       const vle::devs::DynamicsInit& init,
       const vle::devs::InitEventList& events)
     {
         return new ::ObservationModel(init, events);
     }
 
-    VLE_MODULE vle::oov::Plugin* make_oovplugin(const std::string& location)
+    VLE_API vle::oov::Plugin* make_oovplugin(const std::string& location)
     {
         return new ::OutputPluginSimple(location);
     }
 
-    VLE_MODULE vle::oov::Plugin* make_oovplugin_default(
+    VLE_API vle::oov::Plugin* make_oovplugin_default(
       const std::string& location)
     {
         return new ::vletest::OutputPlugin(location);

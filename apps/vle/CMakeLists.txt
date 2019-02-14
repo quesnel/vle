@@ -1,7 +1,4 @@
-include_directories(${VLE_BINARY_DIR}/src ${VLE_SOURCE_DIR}/src
-  ${Boost_INCLUDE_DIRS} ${EXPAT_INCLUDE_DIRS})
-
-link_directories(${Boost_LIBRARY_DIRS})
+set(vle_sources main.cpp)
 
 if (WIN32)
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/vle.o
@@ -9,21 +6,45 @@ if (WIN32)
     -I${CMAKE_BINARY_DIR}/share
     -i${CMAKE_BINARY_DIR}/share/vle.rc
     -o${CMAKE_CURRENT_BINARY_DIR}/vle.o)
-  add_executable(vle main.cpp ${CMAKE_CURRENT_BINARY_DIR}/vle.o)
 
-  set_target_properties(vle PROPERTIES
-    COMPILE_FLAGS "-fvisibility=hidden -fvisibility-inlines-hidden")
+  list(APPEND vle_sources ${CMAKE_CURRENT_BINARY_DIR}/vle.o)
+endif ()
 
-else (WIN32)
-  add_executable(vle main.cpp)
+add_executable(vle ${vle_sources})
 
-  set_target_properties(vle PROPERTIES
-     SOVERSION "${VLE_MAJOR}.${VLE_MINOR}"
-     VERSION "${VLE_MAJOR}.${VLE_MINOR}"
-     COMPILE_FLAGS "-fvisibility=hidden -fvisibility-inlines-hidden")
-endif (WIN32)
+target_include_directories(vle
+  PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+  PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(vle vlelib ${CMAKE_THREAD_LIBS_INIT}
-  ${EXPAT_LIBRARIES} ${OS_SPECIFIC_LIBRARIES})
+target_compile_definitions(vle
+  PRIVATE
+  $<$<BOOL:${WITH_FULL_OPTIMIZATION}>:VLE_FULL_OPTIMIZATION>
+  $<$<NOT:$<BOOL:${WITH_DEBUG}>>:VLE_DISABLE_DEBUG>
+  $<$<CXX_COMPILER_ID:MSVC>:_CRT_SECURE_NO_WARNINGS>
+  $<$<CXX_COMPILER_ID:MSVC>:_SCL_SECURE_NO_WARNINGS>
+  VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
+  VERSION_MINOR=${PROJECT_VERSION_MINOR}
+  VERSION_PATCH=${PROJECT_VERSION_PATCH})
+
+set_target_properties(vle
+  PROPERTIES
+  SOVERSION "${VLE_MAJOR}.${VLE_MINOR}"
+  VERSION "${VLE_MAJOR}.${VLE_MINOR}"
+  CXX_VISIBILITY_PRESET hidden
+  VISIBILITY_INLINES_HIDDEN ON
+  CXX_STANDARD 14
+  CXX_STANDARD_REQUIRED ON)
+
+target_link_libraries(vle
+  PRIVATE
+  libvle
+  threads
+  Boost::boost
+  EXPAT::EXPAT
+  $<$<PLATFORM_ID:Linux>:dl>)
 
 install(TARGETS vle DESTINATION bin)

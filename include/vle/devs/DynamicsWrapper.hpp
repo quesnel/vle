@@ -35,16 +35,16 @@
 #define DECLARE_DYNAMICSWRAPPER(mdl)                                          \
     extern "C"                                                                \
     {                                                                         \
-        VLE_MODULE vle::devs::Dynamics* vle_make_new_dynamics_wrapper(        \
+        VLE_API vle::devs::Dynamics* vle_make_new_dynamics_wrapper(           \
           const vle::devs::DynamicsWrapperInit& init,                         \
           const vle::devs::InitEventList& events)                             \
         {                                                                     \
             return new mdl(init, events);                                     \
         }                                                                     \
                                                                               \
-        VLE_MODULE void vle_api_level(std::uint32_t* major,                   \
-                                      std::uint32_t* minor,                   \
-                                      std::uint32_t* patch)                   \
+        VLE_API void vle_api_level(std::uint32_t* major,                      \
+                                   std::uint32_t* minor,                      \
+                                   std::uint32_t* patch)                      \
         {                                                                     \
             auto version = vle::version();                                    \
             *major = std::get<0>(version);                                    \

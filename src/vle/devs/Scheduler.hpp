@@ -139,7 +139,7 @@ struct Bag
     std::unordered_set<Simulator*> unique_simulators;
 };
 
-class VLE_LOCAL Scheduler
+class Scheduler
 {
 public:
     Scheduler()
@@ -187,7 +187,7 @@ private:
     Time m_current_time;
 };
 
-class VLE_LOCAL TimedObservationScheduler
+class TimedObservationScheduler
 {
     std::vector<ViewEvent> m_observation;
 

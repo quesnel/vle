@@ -40,7 +40,7 @@ namespace devs {
  * ViewEvent is used in scheduller to store the date to launch observation of
  * atomic models.
  */
-struct VLE_LOCAL ViewEvent
+struct ViewEvent
 {
     ViewEvent(View* view, Time currenttime, Time timestep)
       : mView(view)

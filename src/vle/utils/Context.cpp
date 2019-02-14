@@ -212,8 +212,8 @@ Context::Context(const Path& /* prefix */)
 #endif
 
 #if defined(VLE_HAVE_NLS)
-    bindtextdomain(VLE_LOCALE_NAME, getLocaleDir().string().c_str());
-    textdomain(VLE_LOCALE_NAME);
+    bindtextdomain(E_NAME, getLocaleDir().string().c_str());
+    textdomain(E_NAME);
 #endif
 }
 
@@ -319,8 +319,8 @@ Context::Context(std::string locale, const Path& /* prefix */)
 #endif
 
 #if defined(VLE_HAVE_NLS)
-    bindtextdomain(VLE_LOCALE_NAME, getLocaleDir().string().c_str());
-    textdomain(VLE_LOCALE_NAME);
+    bindtextdomain(E_NAME, getLocaleDir().string().c_str());
+    textdomain(E_NAME);
 #endif
 }
 

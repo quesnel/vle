@@ -22,7 +22,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "vle/gvle/gvle_win.h"
+#include "gvle_win.h"
+
 #include <QApplication>
 #include <QCoreApplication>
 #include <QDir>

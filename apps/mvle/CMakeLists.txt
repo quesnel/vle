@@ -1,29 +1,52 @@
-include_directories(${VLE_BINARY_DIR}/src ${VLE_SOURCE_DIR}/src
-  ${Boost_INCLUDE_DIRS} ${EXPAT_INCLUDE_DIRS} ${MPI_INCLUDE_PATH})
+set(cvle_sources cvle.cpp)
 
-link_directories(${Boost_LIBRARY_DIRS})
+if (WIN32)
+  add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/vle.o
+    COMMAND ${CMAKE_RC_COMPILER}
+    -I${CMAKE_BINARY_DIR}/share
+    -i${CMAKE_BINARY_DIR}/share/vle.rc
+    -o${CMAKE_CURRENT_BINARY_DIR}/vle.o)
 
-if (VLE_HAVE_MVLE)
-  add_executable(mvle mvle.cpp)
-  set_target_properties(mvle PROPERTIES SOVERSION
-    "${VLE_MAJOR}.${VLE_MINOR}" VERSION "${VLE_MAJOR}.${VLE_MINOR}")
-  target_link_libraries(mvle ${EXPAT_LIBRARIES}
-    ${OS_SPECIFIC_LIBRARIES} ${Boost_LIBRARIES} ${MPI_LIBRARY}
-    ${MPI_EXTRA_LIBRARY} vlelib)
+  list(APPEND cvle_sources ${CMAKE_CURRENT_BINARY_DIR}/vle.o)
+endif ()
 
-  install(TARGETS mvle DESTINATION bin)
-endif()
+add_executable(cvle ${cvle_sources})
 
-if (VLE_HAVE_CVLE)
-  add_executable(cvle cvle.cpp
-       ${VLE_SOURCE_DIR}/src/vle/vpz/SaxParser.cpp
-       ${VLE_SOURCE_DIR}/src/vle/vpz/SaxStackValue.cpp
-       ${VLE_SOURCE_DIR}/src/vle/vpz/SaxStackVpz.cpp)
-  set_target_properties(cvle PROPERTIES SOVERSION
-    "${VLE_MAJOR}.${VLE_MINOR}" VERSION "${VLE_MAJOR}.${VLE_MINOR}")
-  target_link_libraries(cvle ${EXPAT_LIBRARIES}
-    ${OS_SPECIFIC_LIBRARIES} ${Boost_LIBRARIES} ${MPI_LIBRARY}
-    ${MPI_EXTRA_LIBRARY} vlelib)
+target_include_directories(cvle
+  PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+  PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${MPI_CXX_INCLUDE_PATH})
 
-  install(TARGETS cvle DESTINATION bin)
-endif()
+target_compile_definitions(cvle
+  PRIVATE
+  $<$<BOOL:${WITH_FULL_OPTIMIZATION}>:VLE_FULL_OPTIMIZATION>
+  $<$<NOT:$<BOOL:${WITH_DEBUG}>>:VLE_DISABLE_DEBUG>
+  $<$<CXX_COMPILER_ID:MSVC>:_CRT_SECURE_NO_WARNINGS>
+  $<$<CXX_COMPILER_ID:MSVC>:_SCL_SECURE_NO_WARNINGS>
+  VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
+  VERSION_MINOR=${PROJECT_VERSION_MINOR}
+  VERSION_PATCH=${PROJECT_VERSION_PATCH})
+
+set_target_properties(cvle
+  PROPERTIES
+  SOVERSION "${VLE_MAJOR}.${VLE_MINOR}"
+  VERSION "${VLE_MAJOR}.${VLE_MINOR}"
+  CXX_VISIBILITY_PRESET hidden
+  VISIBILITY_INLINES_HIDDEN ON
+  CXX_STANDARD 14
+  CXX_STANDARD_REQUIRED ON)
+
+target_link_libraries(cvle
+  PRIVATE
+  libvle
+  threads
+  Boost::boost
+  EXPAT::EXPAT
+  $<$<PLATFORM_ID:Linux>:dl>
+  ${MPI_CXX_LIBRARIES})
+
+install(TARGETS cvle DESTINATION bin)

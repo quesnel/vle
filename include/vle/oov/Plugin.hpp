@@ -38,15 +38,15 @@
 #define DECLARE_OOV_PLUGIN(x)                                                 \
     extern "C"                                                                \
     {                                                                         \
-        VLE_MODULE vle::oov::Plugin* vle_make_new_oov(                        \
+        VLE_API vle::oov::Plugin* vle_make_new_oov(                           \
           const std::string& location)                                        \
         {                                                                     \
             return new x(location);                                           \
         }                                                                     \
                                                                               \
-        VLE_MODULE void vle_api_level(std::uint32_t* major,                   \
-                                      std::uint32_t* minor,                   \
-                                      std::uint32_t* patch)                   \
+        VLE_API void vle_api_level(std::uint32_t* major,                      \
+                                   std::uint32_t* minor,                      \
+                                   std::uint32_t* patch)                      \
         {                                                                     \
             auto version = vle::version();                                    \
             *major = std::get<0>(version);                                    \

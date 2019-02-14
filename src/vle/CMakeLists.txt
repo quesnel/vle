@@ -3,7 +3,7 @@ project(libvle VERSION 2.1.0
   DESCRIPTION "Library for the Multi-Modeling and Simulation Environment VLE"
   LANGUAGES CXX)
 
-set(private_libvle_source
+set(libvle_sources
   devs/Coordinator.cpp
   devs/Coordinator.hpp
   devs/Dynamics.cpp
@@ -100,18 +100,18 @@ set(private_libvle_source
   vpz/Vpz.cpp)
 
 if (WIN32)
-  list(APPEND private_libvle_source
+  list(APPEND libvle_sources
     utils/details/PathWin32.cpp
     utils/details/SpawnWin.cpp
     utils/details/UtilsWin.cpp
     utils/details/UtilsWin.hpp)
 else ()
-  list(APPEND private_libvle_source
+  list(APPEND libvle_sources
     utils/details/PathUnix.cpp
     utils/details/SpawnUnix.cpp)
 endif()
 
-add_library(libvle ${private_libvle_source})
+add_library(libvle ${libvle_sources})
 
 option(BUILD_SHARED_LIBS "Build shared library" ON)
 include(GenerateExportHeader)

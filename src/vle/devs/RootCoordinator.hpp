@@ -65,7 +65,7 @@ class Dynamics;
  * @endexample
  *
  */
-class VLE_LOCAL RootCoordinator
+class RootCoordinator
 {
 public:
     RootCoordinator(utils::ContextPtr context);

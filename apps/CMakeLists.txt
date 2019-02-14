@@ -1,10 +1,10 @@
 add_subdirectory(vle)
 
-if (VLE_HAVE_CVLE)
+if (WITH_CVLE)
   add_subdirectory(mvle)
 endif ()
 
-if (VLE_HAVE_GVLE)
+if (WITH_GVLE)
   add_subdirectory(gvle)
 endif ()
 

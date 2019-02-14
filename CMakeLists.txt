@@ -12,7 +12,7 @@ option(WITH_FULL_OPTIMIZATION "disable all logging facilities and active heavy o
 option(WITH_DEBUG "enable debug log message. It slows simulation [default: ON]" ON)
 option(WITH_GVLE "use QT to build gvle [default: on]" ON)
 option(WITH_DOXYGEN "build the documentation with doxygen [default: off]" OFF)
-option(WITH_CVLE "build cvle [default: off]" OFF)
+option(WITH_CVLE "build cvle [default: on]" ON)
 
 # Usefull variables
 set(VLE_MAJOR ${PROJECT_VERSION_MAJOR})
@@ -48,29 +48,17 @@ if (WITH_GVLE)
   set(CMAKE_AUTOMOC ON)
   set(CMAKE_AUTOUIC ON)
   set(CMAKE_AUTORCC ON)
-
   find_package(Qt5 COMPONENTS Widgets Xml Gui Help PrintSupport Svg REQUIRED)
-
-  set (VLE_HAVE_GVLE 1)
-else ()
-  set (VLE_HAVE_GVLE 0)
+  if (NOT Qt5_FOUND)
+    message(FATAL_ERROR "Qt5 is required for gvle. Install Widgets Xml Gui Help PrintSupport Svg")
+  endif ()
 endif ()
 
 if (WITH_CVLE)
   find_package(MPI REQUIRED)
-
   if (NOT MPI_FOUND)
     message(FATAL_ERROR "MPI is required for cvle. Install openmpi, mpich2")
   endif ()
-
-  message(STATUS "mpi include ${MPI_INCLUDE_PATH}")
-  message(STATUS "mpi lib ${MPI_LIBRARY}")
-  message(STATUS "mpi extra lib ${MPI_EXTRA_LIBRARY}")
-  message(STATUS "mpi link ${MPI_LINK_FLAGS}")
-
-  set(VLE_HAVE_CVLE 1)
-else ()
-  set(VLE_HAVE_CVLE 0)
 endif ()
 
 # Tries to found asciidoctor to generate manpages of the share/doc directory.
@@ -131,98 +119,13 @@ message(STATUS "Using ${CMAKE_INSTALL_PREFIX} for installation")
 message(STATUS "Build type ${CMAKE_BUILD_TYPE}")
 message(STATUS "Full optimization.............: ${WITH_FULL_OPTIMIZATION}")
 message(STATUS "Show debug message............. ${WITH_DEBUG}")
-message(STATUS "Build with gvle...............: ${VLE_HAVE_GVLE}")
-message(STATUS "Build with cvle...............: ${VLE_HAVE_CVLE}")
-
-# DeclareSimulator defines system plug-ins for VLE.
-function(Declare plugin targetname package name sources)
-  add_library(${targetname} MODULE ${sources})
-
-  target_compile_definitions(${targetname}
-    PRIVATE
-    $<$<BOOL:${WITH_FULL_OPTIMIZATION}>:VLE_FULL_OPTIMIZATION>
-    $<$<NOT:$<BOOL:${WITH_DEBUG}>>:VLE_DISABLE_DEBUG>
-    $<$<CXX_COMPILER_ID:MSVC>:_CRT_SECURE_NO_WARNINGS>
-    $<$<CXX_COMPILER_ID:MSVC>:_SCL_SECURE_NO_WARNINGS>
-    VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
-    VERSION_MINOR=${PROJECT_VERSION_MINOR}
-    VERSION_PATCH=${PROJECT_VERSION_PATCH})
-
-  target_include_directories(${targetname}
-    PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-    PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR})
-
-  target_link_libraries(${targetname}
-    PRIVATE
-    libvle)
-
-  set_target_properties(${targetname} PROPERTIES
-    OUTPUT_NAME ${name}
-    CXX_VISIBILITY_PRESET hidden
-    VISIBILITY_INLINES_HIDDEN ON
-    CXX_STANDARD 14
-    CXX_STANDARD_REQUIRED ON)
-
-  install(TARGETS ${targetname}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_LIBDIR}/vle-${VLE_ABI}/pkgs/${package}/plugins/${plugin}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/vle-${VLE_ABI}/pkgs/${package}/plugins/${plugin}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/vle-${VLE_ABI}/pkgs/${package}/plugins/${plugin})
-endfunction()
-
-function(DeclareGvle plugin targetname package name sources)
-  add_library(${targetname} MODULE ${sources})
-
-  target_compile_definitions(${targetname}
-    PRIVATE
-    $<$<BOOL:${WITH_FULL_OPTIMIZATION}>:VLE_FULL_OPTIMIZATION>
-    $<$<NOT:$<BOOL:${WITH_DEBUG}>>:VLE_DISABLE_DEBUG>
-    $<$<CXX_COMPILER_ID:MSVC>:_CRT_SECURE_NO_WARNINGS>
-    $<$<CXX_COMPILER_ID:MSVC>:_SCL_SECURE_NO_WARNINGS>
-    VERSION_MAJOR=${PROJECT_VERSION_MAJOR}
-    VERSION_MINOR=${PROJECT_VERSION_MINOR}
-    VERSION_PATCH=${PROJECT_VERSION_PATCH}
-    QT_PLUGIN)
-
-  target_include_directories(${targetname}
-    PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-    PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR})
-
-  target_link_libraries(${targetname}
-    PRIVATE
-    Qt5::Widgets
-    Qt5::Xml
-    Qt5::Gui
-    Qt5::Help
-    Qt5::PrintSupport
-    Qt5::Svg)
-
-  set_target_properties(${targetname} PROPERTIES
-    OUTPUT_NAME ${name}
-    CXX_VISIBILITY_PRESET hidden
-    VISIBILITY_INLINES_HIDDEN ON
-    CXX_STANDARD 14
-    CXX_STANDARD_REQUIRED ON)
-
-  install(TARGETS ${targetname}
-    RUNTIME DESTINATION
-    ${CMAKE_INSTALL_LIBDIR}/vle-${VLE_ABI}/pkgs/${package}/plugins/gvle/${plugin}
-    LIBRARY DESTINATION
-    ${CMAKE_INSTALL_LIBDIR}/vle-${VLE_ABI}/pkgs/${package}/plugins/gvle/${plugin}
-    ARCHIVE DESTINATION
-    ${CMAKE_INSTALL_LIBDIR}/vle-${VLE_ABI}/pkgs/${package}/plugins/gvle/${plugin})
-endfunction()
+message(STATUS "Build with gvle...............: ${WITH_GVLE}")
+message(STATUS "Build with cvle...............: ${WITH_CVLE}")
 
 enable_testing()
-add_subdirectory(share)
 add_subdirectory(src)
 add_subdirectory(pkgs)
+add_subdirectory(apps)
 add_subdirectory(tests)
+add_subdirectory(share)
 include(CMakeCPack.cmake)

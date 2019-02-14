@@ -41,7 +41,7 @@ using namespace vle;
 #define DECLARE_DYNAMICS_SYMBOL(symbol_, model_)                              \
     extern "C"                                                                \
     {                                                                         \
-        VLE_MODULE vle::devs::Dynamics* symbol_(                              \
+        VLE_API vle::devs::Dynamics* symbol_(                                 \
           const vle::devs::DynamicsInit& init,                                \
           const vle::devs::InitEventList& events)                             \
         {                                                                     \
@@ -52,7 +52,7 @@ using namespace vle;
 #define DECLARE_EXECUTIVE_SYMBOL(symbol_, model_)                             \
     extern "C"                                                                \
     {                                                                         \
-        VLE_MODULE vle::devs::Dynamics* symbol_(                              \
+        VLE_API vle::devs::Dynamics* symbol_(                                 \
           const vle::devs::ExecutiveInit& init,                               \
           const vle::devs::InitEventList& events)                             \
         {                                                                     \
@@ -66,7 +66,7 @@ using namespace vle;
 #define DECLARE_OOV_SYMBOL(symbol_, model_)                                   \
     extern "C"                                                                \
     {                                                                         \
-        VLE_MODULE vle::oov::Plugin* symbol_(const std::string& location)     \
+        VLE_API vle::oov::Plugin* symbol_(const std::string& location)        \
         {                                                                     \
             return new model_(location);                                      \
         }                                                                     \

@@ -50,7 +50,7 @@ namespace vpz {
  * more particulary, the complex value::Value like value::Set, value::Map,
  * value::Matrix.
  */
-class VLE_LOCAL ValueStackSax
+class ValueStackSax
 {
 public:
     /**

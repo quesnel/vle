@@ -3,7 +3,7 @@ project(libgvle VERSION 2.1.0
   DESCRIPTION "Library for the GUI of the  Multi-Modeling and Simulation Environment VLE"
   LANGUAGES CXX)
 
-set(private_libgvle_sources
+set(libgvle_sources
   aboutbox.ui
   gvle_win.ui
   help.ui
@@ -45,10 +45,10 @@ if (WIN32)
     -i${CMAKE_BINARY_DIR}/share/gvle.rc
     -o${CMAKE_CURRENT_BINARY_DIR}/gvle.o)
 
-  list(APPEND private_libgvle_sources ${CMAKE_CURRENT_BINARY_DIR}/gvle.o)
+  list(APPEND libgvle_sources ${CMAKE_CURRENT_BINARY_DIR}/gvle.o)
 endif (WIN32)
 
-add_library(libgvle ${private_libgvle_sources})
+add_library(libgvle ${libgvle_sources})
 
 option(BUILD_SHARED_LIBS "Build shared library" ON)
 include(GenerateExportHeader)
