@@ -26,19 +26,19 @@
 #define GVLE_PLUGIN_MAINPANEL_H
 
 #include "gvle_plugins.h"
+#include "logger.h"
+#include <vle/gvle/export.hpp>
+#include <vle/utils/Package.hpp>
+
 #include <QDebug>
 #include <QWidget>
-
-#include "logger.h"
-
-#include <vle/utils/Package.hpp>
 
 namespace vle {
 namespace gvle {
 
 struct gvle_file;
 
-class PluginMainPanel : public QObject
+class GVLE_API PluginMainPanel : public QObject
 {
     Q_OBJECT
 public:
@@ -52,6 +52,7 @@ public:
     virtual QWidget* rightWidget() = 0;
     virtual void undo() = 0;
     virtual void redo() = 0;
+
     /**
      * Note: this function is in charge of creating files (including metadata)
      * at the creation time. Also it has to handle renaming of files and

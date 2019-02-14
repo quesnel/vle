@@ -26,7 +26,8 @@ target_link_libraries(DateCondition
    ${Qt5Xml_LIBRARIES})
 
 set(DateCondition_INST
-  lib/vle-${VLE_VERSION_SHORT}/pkgs/gvle.default/plugins/gvle/condition)
+  lib/vle-${VLE_ABI}/pkgs/gvle.default/plugins/gvle/condition)
+
 install(TARGETS DateCondition
   RUNTIME DESTINATION ${DateCondition_INST}
   LIBRARY DESTINATION ${DateCondition_INST}

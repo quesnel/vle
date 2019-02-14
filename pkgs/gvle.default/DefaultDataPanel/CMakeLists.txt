@@ -26,7 +26,7 @@ target_link_libraries(DefaultDataPanel
    ${Qt5Xml_LIBRARIES})
 
 set(DefaultDataPanel_INST
-  lib/vle-${VLE_VERSION_SHORT}/pkgs/gvle.default/plugins/gvle/data)
+  lib/vle-${VLE_ABI}/pkgs/gvle.default/plugins/gvle/data)
 
 install(TARGETS DefaultDataPanel
   RUNTIME DESTINATION ${DefaultDataPanel_INST}

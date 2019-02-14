@@ -808,7 +808,7 @@ gvle_win::onResetConfig()
     QMessageBox::StandardButton reply;
     reply = QMessageBox::critical(this,
                                   tr("Question"),
-                                  tr("Are you sure you want to reset the vle" \
+                                  tr("Are you sure you want to reset the vle"
                                      " configuration file to the default?"),
                                   QMessageBox::Yes | QMessageBox::No);
 
@@ -831,9 +831,9 @@ gvle_win::onResetConfig()
             mCtx->write_settings();
         } catch (const std::exception& e) {
             mLogger->log(QString(
-                             utils::format("Failed to reset the vle configuration file: %s\n",
-                                           e.what())
-                             .c_str()));
+              utils::format("Failed to reset the vle configuration file: %s\n",
+                            e.what())
+                .c_str()));
         }
     }
 }
@@ -1045,7 +1045,7 @@ gvle_win::menuPackagesInstallRefresh()
                                 itb->major,
                                 itb->minor,
                                 itb->patch)
-                  .c_str()));
+                    .c_str()));
             }
         }
     }

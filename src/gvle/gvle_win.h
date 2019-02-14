@@ -38,13 +38,13 @@
 #include <QtGui>
 
 #ifndef Q_MOC_RUN
+#include <vle/gvle/export.hpp>
 #include <vle/utils/Context.hpp>
 #include <vle/utils/Spawn.hpp>
 #include <vle/utils/Template.hpp>
 #include <vle/vpz/Vpz.hpp>
 #endif
 
-#include "gvle_file.h"
 #include "logger.h"
 #include "plugin_mainpanel.h"
 
@@ -57,7 +57,7 @@ namespace gvle {
 
 class notification;
 
-class gvle_win : public QMainWindow
+class GVLE_API gvle_win : public QMainWindow
 {
     Q_OBJECT
 

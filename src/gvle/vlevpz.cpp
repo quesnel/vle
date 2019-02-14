@@ -24,8 +24,10 @@
 
 #include <iostream>
 
-#include "gvle/plugin_cond.h"
-#include "gvle/plugin_output.h"
+#include "plugin_cond.h"
+#include "plugin_output.h"
+#include "vlevpz.hpp"
+
 #include <QApplication>
 #include <QClipboard>
 #include <QDebug>
@@ -37,7 +39,7 @@
 #include <QMessageBox>
 #include <QPalette>
 #include <QtDebug>
-#include <vle/gvle/vlevpz.hpp>
+
 #include <vle/utils/Exception.hpp>
 #include <vle/value/Boolean.hpp>
 #include <vle/value/Double.hpp>

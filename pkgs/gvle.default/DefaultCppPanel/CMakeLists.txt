@@ -25,7 +25,8 @@ target_link_libraries(DefaultCppPanel
    ${Qt5Xml_LIBRARIES})
 
 set(DefaultCppPanel_INST
-  lib/vle-${VLE_VERSION_SHORT}/pkgs/gvle.default/plugins/gvle/modeling)
+  lib/vle-${VLE_ABI}/pkgs/gvle.default/plugins/gvle/modeling)
+
 install(TARGETS DefaultCppPanel
   RUNTIME DESTINATION ${DefaultCppPanel_INST}
   LIBRARY DESTINATION ${DefaultCppPanel_INST}

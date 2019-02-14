@@ -25,22 +25,24 @@
 #ifndef gvle_PLUGIN_COND_H
 #define gvle_PLUGIN_COND_H
 
-#include <vle/gvle/vlevpz.hpp>
+#include "logger.h"
+#include "vlevpz.hpp"
+#include <vle/gvle/export.hpp>
 
 #include <QObject>
 #include <QSettings>
 #include <QString>
 #include <QWidget>
 
-#include "gvle/logger.h"
-
 namespace vle {
 namespace gvle {
 
-class PluginExpCond : public QObject
+class GVLE_API PluginExpCond : public QObject
 {
     Q_OBJECT
 public:
+    ~PluginExpCond() override = default;
+
     virtual QString getname() = 0;
     virtual QWidget* getWidget() = 0;
     virtual void setSettings(QSettings* s) = 0;

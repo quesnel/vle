@@ -30,7 +30,7 @@ target_link_libraries(DefaultSimSubpanel vlelib gvlelib
   ${Qt5Help_LIBRARIES} ${Qt5PrintSupport_LIBRARIES})
 
 set(DefaultSimSubpanel_INST
-  lib/vle-${VLE_VERSION_SHORT}/pkgs/gvle.default/plugins/gvle/simulating)
+  lib/vle-${VLE_ABI}/pkgs/gvle.default/plugins/gvle/simulating)
 install(TARGETS DefaultSimSubpanel
   RUNTIME DESTINATION ${DefaultSimSubpanel_INST}
   LIBRARY DESTINATION ${DefaultSimSubpanel_INST}

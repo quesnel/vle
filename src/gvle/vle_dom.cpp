@@ -22,8 +22,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <vle/gvle/dom_tools.hpp>
-#include <vle/gvle/vle_dom.hpp>
+#include "vle_dom.hpp"
+#include "dom_tools.hpp"
 
 #include <QtDebug>
 

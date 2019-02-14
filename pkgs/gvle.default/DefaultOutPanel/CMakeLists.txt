@@ -26,7 +26,7 @@ target_link_libraries(DefaultOutPanel
 
 
 set(DefaultOutPanel_INST
-  lib/vle-${VLE_VERSION_SHORT}/pkgs/gvle.default/plugins/gvle/out)
+  lib/vle-${VLE_ABI}/pkgs/gvle.default/plugins/gvle/out)
 install(TARGETS DefaultOutPanel
   RUNTIME DESTINATION ${DefaultOutPanel_INST}
   LIBRARY DESTINATION ${DefaultOutPanel_INST}

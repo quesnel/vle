@@ -30,7 +30,9 @@
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 #include <QtDebug>
-#include <vle/gvle/dom_tools.hpp>
+
+#include "dom_tools.hpp"
+
 #include <vle/value/Boolean.hpp>
 #include <vle/value/Integer.hpp>
 #include <vle/value/Map.hpp>

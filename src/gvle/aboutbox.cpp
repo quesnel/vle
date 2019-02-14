@@ -24,8 +24,9 @@
 
 #include <vle/vle.hpp>
 
-#include "gvle/aboutbox.h"
+#include "aboutbox.h"
 #include "ui_aboutbox.h"
+
 #include <QString>
 #include <QTextStream>
 

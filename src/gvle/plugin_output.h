@@ -26,6 +26,8 @@
 #define gvle_PLUGIN_OUTPUT_H
 
 #include "logger.h"
+#include <vle/gvle/export.hpp>
+
 #include <QObject>
 #include <QString>
 #include <QWidget>
@@ -35,10 +37,12 @@ namespace gvle {
 
 class vleVpz;
 
-class PluginOutput : public QObject
+class GVLE_API PluginOutput : public QObject
 {
     Q_OBJECT
 public:
+    ~PluginOutput() override = default;
+
     virtual QString getname() = 0;
     virtual QWidget* getWidget() = 0;
     virtual void delWidget() = 0;

@@ -26,14 +26,16 @@
 #define GVLE_PLUGIN_SIMPANEL_H
 
 #include "logger.h"
-#include <QWidget>
-#include <vle/gvle/vlevpz.hpp>
+#include "vlevpz.hpp"
+#include <vle/gvle/export.hpp>
 #include <vle/utils/Package.hpp>
+
+#include <QWidget>
 
 namespace vle {
 namespace gvle {
 
-class PluginSimPanel : public QObject
+class GVLE_API PluginSimPanel : public QObject
 {
     Q_OBJECT
 public:

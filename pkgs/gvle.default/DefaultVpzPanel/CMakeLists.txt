@@ -45,7 +45,7 @@ target_link_libraries(DefaultVpzPanel
 
 
 set(DefaultVpzPanel_INST
-  lib/vle-${VLE_VERSION_SHORT}/pkgs/gvle.default/plugins/gvle/vpz)
+  lib/vle-${VLE_ABI}/pkgs/gvle.default/plugins/gvle/vpz)
 install(TARGETS DefaultVpzPanel
   RUNTIME DESTINATION ${DefaultVpzPanel_INST}
   LIBRARY DESTINATION ${DefaultVpzPanel_INST}
