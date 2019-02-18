@@ -31,10 +31,10 @@
 #include <QtWidgets/QComboBox>
 #include <vle/utils/Package.hpp>
 
-#include <vle/gvle/gvle_widgets.h>
-#include <vle/gvle/logger.h>
-#include <vle/gvle/plugin_cond.h>
-#include <vle/gvle/vlevpz.hpp>
+#include "gvle_widgets.h"
+#include "logger.h"
+#include "plugin_cond.h"
+#include "vlevpz.hpp"
 
 //#include "tab.h"
 //#include "toolbar.h"

@@ -33,7 +33,6 @@
 #include "filevpzproject.h"
 #include "filevpzrtool.h"
 #include "filevpzsim.h"
-#include "ui_filevpzrtool.h"
 #include "vpzDiagScene.h"
 #include "widgetvpzproperty.h"
 #include <QGraphicsScene>
@@ -44,8 +43,9 @@
 #include <QUndoStack>
 #include <QUndoView>
 #include <QWidget>
-#include <vle/gvle/plugin_mainpanel.h>
-#include <vle/gvle/vlevpz.hpp>
+
+#include "plugin_mainpanel.h"
+#include "vlevpz.hpp"
 
 namespace Ui {
 class fileVpzView;

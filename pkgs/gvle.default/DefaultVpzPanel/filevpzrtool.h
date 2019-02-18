@@ -25,9 +25,9 @@
 #ifndef gvle_FILE_VPZ_RTOOL_H
 #define gvle_FILE_VPZ_RTOOL_H
 
-#include "ui_filevpzrtool.h"
 #include "vpzDiagScene.h"
 #include "widgetvpzproperty.h"
+
 #include <QGraphicsScene>
 #include <QListWidgetItem>
 #include <QTableWidgetItem>
@@ -36,7 +36,8 @@
 #include <QUndoStack>
 #include <QUndoView>
 #include <QWidget>
-#include <vle/gvle/vlevpz.hpp>
+
+#include "vlevpz.hpp"
 
 //#ifndef Q_MOC_RUN
 //#include <vle/vpz/Vpz.hpp>
@@ -48,7 +49,7 @@
 #define ROW_EXP 3
 
 namespace Ui {
-class fileVpzRTool;
+class fileVpzRtool;
 }
 
 namespace vle {

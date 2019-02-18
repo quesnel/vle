@@ -61,7 +61,8 @@ function(DeclareGvle plugin targetname package name sources)
     $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
     $<INSTALL_INTERFACE:include>
     PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR})
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src/gvle>)
 
   target_link_libraries(${targetname}
     PRIVATE
@@ -88,12 +89,12 @@ function(DeclareGvle plugin targetname package name sources)
     ${CMAKE_INSTALL_LIBDIR}/vle-${VLE_ABI}/pkgs/${package}/plugins/gvle/${plugin})
 endfunction()
 
-# add_subdirectory(vle.output)
+add_subdirectory(vle.output)
 add_subdirectory(vle.adaptative-qss)
 add_subdirectory(vle.generic.builder)
 
-# if (WITH_GVLE)
-#   add_subdirectory(gvle.default)
-# endif ()
+if (WITH_GVLE)
+  add_subdirectory(gvle.default)
+endif ()
 
 # add_subdirectory(test)

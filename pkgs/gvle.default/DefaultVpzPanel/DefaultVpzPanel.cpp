@@ -23,7 +23,12 @@
  */
 
 #include "DefaultVpzPanel.h"
+
+#include "filevpzrtool.h"
+#include "filevpzview.h"
 #include "ui_filevpzsim.h"
+#include "ui_filevpzview.h"
+
 #include <QStackedWidget>
 
 namespace vle {

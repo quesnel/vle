@@ -27,7 +27,9 @@
 #include <QObject>
 #include <QtCore/qnamespace.h>
 #include <QtXml>
-#include <vle/gvle/vlevpz.hpp>
+
+#include "vlevpz.hpp"
+
 #include <vle/value/Map.hpp>
 
 namespace Ui {

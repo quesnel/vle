@@ -26,7 +26,8 @@
 #include <QtWidgets/QVBoxLayout>
 
 #include <iostream>
-#include <vle/gvle/gvle_widgets.h>
+
+#include "gvle_widgets.h"
 #include <vle/utils/DateTime.hpp>
 #include <vle/value/Double.hpp>
 #include <vle/value/String.hpp>

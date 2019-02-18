@@ -35,8 +35,9 @@
 #include <QUndoView>
 #include <QWidget>
 
-#include <vle/gvle/gvle_widgets.h>
-#include <vle/gvle/vlevpz.hpp>
+#include "gvle_widgets.h"
+#include "vlevpz.hpp"
+
 #ifndef Q_MOC_RUN
 #include <vle/vpz/Vpz.hpp>
 #endif

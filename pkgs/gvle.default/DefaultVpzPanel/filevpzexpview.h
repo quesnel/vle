@@ -30,8 +30,9 @@
 #include <QWidget>
 
 #ifndef Q_MOC_RUN
-#include <vle/gvle/plugin_output.h>
-#include <vle/gvle/vlevpz.hpp>
+#include "plugin_output.h"
+#include "vlevpz.hpp"
+
 #include <vle/utils/Context.hpp>
 #endif
 

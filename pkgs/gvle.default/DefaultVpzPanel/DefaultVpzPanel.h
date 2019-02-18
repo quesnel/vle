@@ -29,17 +29,16 @@
 #include <QObject>
 #include <QWidget>
 
-#include <vle/gvle/gvle_file.h>
-#include <vle/gvle/plugin_mainpanel.h>
-#include <vle/gvle/plugin_simpanel.h>
-#include <vle/gvle/vlevpz.hpp>
-
-#include "filevpzrtool.h"
-#include "filevpzview.h"
-#include "ui_filevpzview.h"
+#include "gvle_file.h"
+#include "plugin_mainpanel.h"
+#include "plugin_simpanel.h"
+#include "vlevpz.hpp"
 
 namespace vle {
 namespace gvle {
+
+class fileVpzView;
+class FileVpzRtool;
 
 class DefaultVpzPanel : public PluginMainPanel
 {

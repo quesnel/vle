@@ -30,8 +30,8 @@
 #include <QObject>
 #include <QWidget>
 
-#include <vle/gvle/plugin_simpanel.h>
-#include <vle/gvle/vlevpz.hpp>
+#include "plugin_simpanel.h"
+#include "vlevpz.hpp"
 
 namespace Ui {
 class simpanelleft;

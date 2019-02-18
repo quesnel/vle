@@ -29,7 +29,8 @@
 #include <QTabWidget>
 #include <QUndoStack>
 #include <QWidget>
-#include <vle/gvle/vlevpz.hpp>
+
+#include "vlevpz.hpp"
 
 namespace Ui {
 class FileVpzProject;

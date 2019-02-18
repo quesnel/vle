@@ -36,9 +36,9 @@
 #include <QUndoView>
 #include <QWidget>
 
-#include "ui_filevpzrtool.h"
+#include "vlevpz.hpp"
 #include "vpzDiagScene.h"
-#include <vle/gvle/vlevpz.hpp>
+
 #ifndef Q_MOC_RUN
 #include <vle/vpz/Vpz.hpp>
 #endif

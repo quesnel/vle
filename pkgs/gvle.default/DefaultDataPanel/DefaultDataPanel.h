@@ -28,8 +28,9 @@
 #include <QDebug>
 #include <QObject>
 #include <QWidget>
-#include <vle/gvle/gvle_file.h>
-#include <vle/gvle/plugin_mainpanel.h>
+
+#include "gvle_file.h"
+#include "plugin_mainpanel.h"
 
 namespace vle {
 namespace gvle {

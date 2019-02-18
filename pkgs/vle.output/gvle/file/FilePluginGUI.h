@@ -25,9 +25,11 @@
 #define FilePluginGUI_H
 
 #include "FilePluginGUItab.h"
+
 #include <QObject>
 #include <QtXml/qdom.h>
-#include <vle/gvle/plugin_output.h>
+
+#include "plugin_output.h"
 
 namespace vle {
 namespace gvle {

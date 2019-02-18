@@ -25,7 +25,6 @@
 #ifndef gvle_FILE_VPZ_SIM_H
 #define gvle_FILE_VPZ_SIM_H
 
-#include "ui_filevpzrtool.h"
 #include <QGraphicsScene>
 #include <QListWidgetItem>
 #include <QTableWidgetItem>
@@ -34,8 +33,9 @@
 #include <QUndoStack>
 #include <QUndoView>
 #include <QWidget>
-#include <vle/gvle/plugin_simpanel.h>
-#include <vle/gvle/vlevpz.hpp>
+
+#include "plugin_simpanel.h"
+#include "vlevpz.hpp"
 
 namespace Ui {
 class FileVpzSim;

@@ -27,9 +27,10 @@
 
 #include <QObject>
 #include <QWidget>
-#include <vle/gvle/gvle_file.h>
-#include <vle/gvle/plugin_mainpanel.h>
-#include <vle/gvle/widgets/GvleCodeEdit.h>
+
+#include "gvle_file.h"
+#include "plugin_mainpanel.h"
+#include "widgets/GvleCodeEdit.h"
 
 namespace vle {
 namespace gvle {
