@@ -42,6 +42,10 @@
 #include <QStackedWidget>
 #include <QSyntaxHighlighter>
 
+#include <vle/value/Value.hpp>
+
+#include <vle/gvle/export.hpp>
+
 #include <iostream>
 
 namespace vle {
@@ -50,7 +54,7 @@ namespace gvle {
 /**
  * A Null widget allows to get the selected signal
  */
-class VleNullWidget : public QWidget
+class GVLE_API VleNullWidget : public QWidget
 {
     Q_OBJECT
 public:
@@ -66,7 +70,7 @@ signals:
 /**
  * A Bool Editor
  */
-class VleBooleanEdit : public QCheckBox
+class GVLE_API VleBooleanEdit : public QCheckBox
 {
     Q_OBJECT
 public:
@@ -86,7 +90,7 @@ signals:
 /**
  * A double Editor
  */
-class VleDoubleEdit : public QLineEdit
+class GVLE_API VleDoubleEdit : public QLineEdit
 {
     Q_OBJECT
 public:
@@ -111,7 +115,7 @@ signals:
 /**
  * A day editor Editor
  */
-class VleDayEdit : public QDateEdit
+class GVLE_API VleDayEdit : public QDateEdit
 {
     Q_OBJECT
 public:
@@ -137,7 +141,7 @@ signals:
 /**
  * A push button with an id
  */
-class VlePushButton : public QPushButton
+class GVLE_API VlePushButton : public QPushButton
 {
     Q_OBJECT
 public:
@@ -156,7 +160,7 @@ signals:
  * Required to avoid wheelEvent if for example embedded into a ScrollArea
  * reimplement wheelEvent(QWheelEvent *event)
  */
-class VleSpinBox : public QSpinBox
+class GVLE_API VleSpinBox : public QSpinBox
 {
     Q_OBJECT
 public:
@@ -183,7 +187,7 @@ signals:
  * Required to avoid wheelEvent if for example embedded into a ScrollArea
  * reimplement wheelEvent(QWheelEvent *event)
  */
-class VleDoubleSpinBox : public QDoubleSpinBox
+class GVLE_API VleDoubleSpinBox : public QDoubleSpinBox
 {
     Q_OBJECT
 public:
@@ -209,7 +213,7 @@ signals:
  * reimplement mousePressEvent(QMouseEvent * e)
  * send
  */
-class VleCombo : public QComboBox
+class GVLE_API VleCombo : public QComboBox
 {
     Q_OBJECT
 public:
@@ -228,7 +232,7 @@ signals:
     void selected(const QString& id);
 };
 
-class VleComboLineEdit : public QComboBox
+class GVLE_API VleComboLineEdit : public QComboBox
 {
     Q_OBJECT
 public:
@@ -258,7 +262,7 @@ signals:
 /**
  * A line Editor (TODO validator for c++ names)
  */
-class VleLineEdit : public QLineEdit
+class GVLE_API VleLineEdit : public QLineEdit
 {
     Q_OBJECT
 public:
@@ -290,7 +294,7 @@ signals:
  *
  * @deprecated : use instead widgets/GvleTextEdit
  */
-class VleTextEdit : public QPlainTextEdit
+class GVLE_API VleTextEdit : public QPlainTextEdit
 {
     Q_OBJECT
 public:
@@ -324,7 +328,7 @@ signals:
  * see:
  * http://stackoverflow.com/questions/23511430/qt-qstackedwidget-resizing-issue
  */
-class VleStackedWidget : public QStackedWidget
+class GVLE_API VleStackedWidget : public QStackedWidget
 {
     QSize sizeHint() const override;
     QSize minimumSizeHint() const override;
@@ -334,7 +338,7 @@ class VleStackedWidget : public QStackedWidget
  * Wigdet to edit a vle::value recursively (no UI required)
  * Could be used for plugins ?
  */
-class VleValueWidget : public QWidget
+class GVLE_API VleValueWidget : public QWidget
 {
     Q_OBJECT
 
@@ -467,7 +471,7 @@ private:
  * single line QGraphicsTextItem
  */
 
-class VleLineEditItem : public QGraphicsTextItem
+class GVLE_API VleLineEditItem : public QGraphicsTextItem
 {
     Q_OBJECT
 public:
@@ -498,7 +502,7 @@ protected:
 
 class VleCodeEdit;
 
-class VleCodeHighlighter : public QSyntaxHighlighter
+class GVLE_API VleCodeHighlighter : public QSyntaxHighlighter
 {
     Q_OBJECT
 
@@ -528,7 +532,7 @@ private:
     QTextCharFormat functionFormat;
 };
 
-class VleCodeLineNumberArea : public QWidget
+class GVLE_API VleCodeLineNumberArea : public QWidget
 {
 public:
     VleCodeLineNumberArea(VleCodeEdit* editor);
@@ -542,7 +546,7 @@ private:
     VleCodeEdit* codeEditor;
 };
 
-class VleCodeEdit : public QPlainTextEdit
+class GVLE_API VleCodeEdit : public QPlainTextEdit
 {
     Q_OBJECT
 

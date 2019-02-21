@@ -29,6 +29,8 @@
 #include <QSyntaxHighlighter>
 #include <QTimer>
 
+#include <vle/gvle/export.hpp>
+
 namespace vle {
 namespace gvle {
 
@@ -37,7 +39,7 @@ class GvleCodeEdit;
 /****
  * Syntax highlighter
  */
-class GvleCodeHighlighter : public QSyntaxHighlighter
+class GVLE_API GvleCodeHighlighter : public QSyntaxHighlighter
 {
     Q_OBJECT
 
@@ -70,7 +72,7 @@ private:
 /****
  * Line number
  */
-class GvleCodeLineNumberArea : public QWidget
+class GVLE_API GvleCodeLineNumberArea : public QWidget
 {
 public:
     GvleCodeLineNumberArea(GvleCodeEdit* editor);
@@ -87,7 +89,7 @@ private:
 /****
  * Main class
  */
-class GvleCodeEdit : public QPlainTextEdit
+class GVLE_API GvleCodeEdit : public QPlainTextEdit
 {
     Q_OBJECT
 

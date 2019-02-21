@@ -28,6 +28,8 @@
 #include <QPlainTextEdit>
 #include <QTimer>
 
+#include <vle/gvle/export.hpp>
+
 namespace vle {
 namespace gvle {
 
@@ -35,7 +37,7 @@ namespace gvle {
  * Text editor to be used with the global undo/rdo gvle system
  * TODO should contain text rules no comma, no '<', etc..
  */
-class GvleTextEdit : public QPlainTextEdit
+class GVLE_API GvleTextEdit : public QPlainTextEdit
 {
     Q_OBJECT
 public:
