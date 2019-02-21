@@ -124,11 +124,11 @@ test_algo()
 
     utils::copyIf(b.begin(), b.end(), std::back_inserter(out), is_odd());
 
-    EnsuresEqual(out.size(), (std::vector<int>::size_type)2);
+    EnsuresEqual(out.size(), std::vector<int>::size_type{ 2 });
     EnsuresEqual(out[0], 1);
     EnsuresEqual(out[1], 5);
 
-    EnsuresEqual(b.size(), (std::vector<int>::size_type)5);
+    EnsuresEqual(b.size(), std::vector<int>::size_type{ 5 });
     EnsuresEqual(b[0], 1);
     EnsuresEqual(b[1], 2);
     EnsuresEqual(b[2], 2);

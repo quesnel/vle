@@ -35,19 +35,29 @@
 #include <vle/vpz/Dynamics.hpp>
 #include <vle/vpz/Observables.hpp>
 
+#if defined _WIN32 || defined __CYGWIN__
+#define VLE_MODULE __declspec(dllexport)
+#else
+#if __GNUC__ >= 4
+#define VLE_MODULE __attribute__((visibility("default")))
+#else
+#define VLE_MODULE
+#endif
+#endif
+
 #define DECLARE_EXECUTIVE(mdl)                                                \
     extern "C"                                                                \
     {                                                                         \
-        VLE_API vle::devs::Dynamics* vle_make_new_executive(                  \
+        VLE_MODULE vle::devs::Dynamics* vle_make_new_executive(               \
           const vle::devs::ExecutiveInit& init,                               \
           const vle::devs::InitEventList& events)                             \
         {                                                                     \
             return new mdl(init, events);                                     \
         }                                                                     \
                                                                               \
-        VLE_API void vle_api_level(vle::uint32_t* major,                      \
-                                   vle::uint32_t* minor,                      \
-                                   vle::uint32_t* patch)                      \
+        VLE_MODULE void vle_api_level(vle::uint32_t* major,                   \
+                                      vle::uint32_t* minor,                   \
+                                      vle::uint32_t* patch)                   \
         {                                                                     \
             auto version = vle::version();                                    \
             *major = std::get<0>(version);                                    \

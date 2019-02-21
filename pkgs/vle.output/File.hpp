@@ -27,11 +27,13 @@
 #ifndef VLE_OOV_PLUGINS_FILE_HPP
 #define VLE_OOV_PLUGINS_FILE_HPP 1
 
-#include <fstream>
-#include <map>
-#include <vector>
 #include <vle/oov/Plugin.hpp>
 #include <vle/value/Set.hpp>
+
+#include <fstream>
+#include <map>
+#include <memory>
+#include <vector>
 
 namespace vle {
 namespace oov {
@@ -112,6 +114,8 @@ public:
     class FileType
     {
     public:
+        FileType() = default;
+
         virtual ~FileType() = default;
 
         virtual std::string extension() const = 0;
@@ -141,7 +145,7 @@ private:
         STANDARD_ERROR /*!< use the error output (std::cerr). */
     };
 
-    FileType* m_filetype;
+    std::unique_ptr<FileType> m_filetype;
     Columns m_columns;
     value::Set m_buffer;
     ValidElement m_valid;

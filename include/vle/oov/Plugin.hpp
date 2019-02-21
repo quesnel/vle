@@ -35,18 +35,28 @@
 #include <vle/value/Matrix.hpp>
 #include <vle/vle.hpp>
 
+#if defined _WIN32 || defined __CYGWIN__
+#define VLE_MODULE __declspec(dllexport)
+#else
+#if __GNUC__ >= 4
+#define VLE_MODULE __attribute__((visibility("default")))
+#else
+#define VLE_MODULE
+#endif
+#endif
+
 #define DECLARE_OOV_PLUGIN(x)                                                 \
     extern "C"                                                                \
     {                                                                         \
-        VLE_API vle::oov::Plugin* vle_make_new_oov(                           \
+        VLE_MODULE vle::oov::Plugin* vle_make_new_oov(                        \
           const std::string& location)                                        \
         {                                                                     \
             return new x(location);                                           \
         }                                                                     \
                                                                               \
-        VLE_API void vle_api_level(std::uint32_t* major,                      \
-                                   std::uint32_t* minor,                      \
-                                   std::uint32_t* patch)                      \
+        VLE_MODULE void vle_api_level(std::uint32_t* major,                   \
+                                      std::uint32_t* minor,                   \
+                                      std::uint32_t* patch)                   \
         {                                                                     \
             auto version = vle::version();                                    \
             *major = std::get<0>(version);                                    \

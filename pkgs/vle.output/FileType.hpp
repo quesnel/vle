@@ -37,7 +37,9 @@ namespace plugin {
 class Rdata : public File::FileType
 {
 public:
-    ~Rdata() override;
+    Rdata() = default;
+
+    ~Rdata() override = default;
 
     std::string extension() const override;
 
@@ -49,7 +51,9 @@ public:
 class CSV : public File::FileType
 {
 public:
-    ~CSV() override;
+    CSV() = default;
+
+    ~CSV() override = default;
 
     std::string extension() const override;
 
@@ -61,7 +65,9 @@ public:
 class Text : public File::FileType
 {
 public:
-    ~Text() override;
+    Text() = default;
+
+    ~Text() override = default;
 
     std::string extension() const override;
 

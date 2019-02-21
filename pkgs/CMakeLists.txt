@@ -1,6 +1,6 @@
 # DeclareSimulator defines system plug-ins for VLE.
-function(Declare plugin targetname package name sources)
-  add_library(${targetname} MODULE ${sources})
+function(Declare plugin targetname package name)
+  add_library(${targetname} MODULE ${ARGN})
 
   target_compile_definitions(${targetname}
     PRIVATE
@@ -37,12 +37,12 @@ function(Declare plugin targetname package name sources)
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/vle-${VLE_ABI}/pkgs/${package}/plugins/${plugin})
 endfunction()
 
-function(DeclareGvle plugin targetname package name sources)
+function(DeclareGvle plugin targetname package name)
   set(CMAKE_INCLUDE_CURRENT_DIR ON)
   set(CMAKE_AUTOMOC ON)
   set(CMAKE_AUTOUIC ON)
 
-  add_library(${targetname} MODULE ${sources})
+  add_library(${targetname} MODULE ${ARGN})
 
   target_compile_definitions(${targetname}
     PRIVATE

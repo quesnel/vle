@@ -7,19 +7,22 @@ set(libgvle_sources
   aboutbox.ui
   gvle_win.ui
   help.ui
+  dom_tools.hpp
+  vle_dom.hpp
+  vlevpz.hpp
+  aboutbox.h
+  gvle_file.h
   gvle_plugins.h
+  gvle_widgets.h
   gvle_win.h
+  helpbrowser.h
+  help.h
   logger.h
+  notification.h
   plugin_cond.h
   plugin_mainpanel.h
   plugin_output.h
   plugin_simpanel.h
-  aboutbox.h
-  gvle_file.h
-  gvle_widgets.h
-  helpbrowser.h
-  help.h
-  notification.h
   aboutbox.cpp
   dom_tools.cpp
   gvle_file.cpp
@@ -133,6 +136,8 @@ install(FILES
     dom_tools.hpp
     gvle_plugins.h
     gvle_win.h
+    gvle_file.h
+    gvle_widgets.h
     logger.h
     plugin_cond.h
     plugin_mainpanel.h
@@ -143,3 +148,9 @@ install(FILES
     ${CMAKE_BINARY_DIR}/include/vle/gvle/export.hpp
     DESTINATION
     ${CMAKE_INSTALL_INCLUDEDIR}/vle-${VLE_ABI}/vle/gvle)
+
+install(FILES
+    widgets/GvleCodeEdit.h
+    widgets/GvleTextEdit.h
+    DESTINATION
+    ${CMAKE_INSTALL_INCLUDEDIR}/vle-${VLE_ABI}/vle/gvle/widgets)

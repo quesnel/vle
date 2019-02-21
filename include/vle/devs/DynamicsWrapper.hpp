@@ -32,19 +32,29 @@
 #include <vle/devs/Dynamics.hpp>
 #include <vle/vle.hpp>
 
+#if defined _WIN32 || defined __CYGWIN__
+#define VLE_MODULE __declspec(dllexport)
+#else
+#if __GNUC__ >= 4
+#define VLE_MODULE __attribute__((visibility("default")))
+#else
+#define VLE_MODULE
+#endif
+#endif
+
 #define DECLARE_DYNAMICSWRAPPER(mdl)                                          \
     extern "C"                                                                \
     {                                                                         \
-        VLE_API vle::devs::Dynamics* vle_make_new_dynamics_wrapper(           \
+        VLE_MODULE vle::devs::Dynamics* vle_make_new_dynamics_wrapper(        \
           const vle::devs::DynamicsWrapperInit& init,                         \
           const vle::devs::InitEventList& events)                             \
         {                                                                     \
             return new mdl(init, events);                                     \
         }                                                                     \
                                                                               \
-        VLE_API void vle_api_level(std::uint32_t* major,                      \
-                                   std::uint32_t* minor,                      \
-                                   std::uint32_t* patch)                      \
+        VLE_MODULE void vle_api_level(std::uint32_t* major,                   \
+                                      std::uint32_t* minor,                   \
+                                      std::uint32_t* patch)                   \
         {                                                                     \
             auto version = vle::version();                                    \
             *major = std::get<0>(version);                                    \

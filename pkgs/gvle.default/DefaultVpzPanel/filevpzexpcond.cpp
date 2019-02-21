@@ -34,9 +34,11 @@
 #include <QTableWidgetItem>
 #include <QTreeWidgetItem>
 #include <QWidget>
-#include <vle/gvle/gvle_plugins.h>
-#include <vle/gvle/gvle_widgets.h>
-#include <vle/gvle/vlevpz.hpp>
+
+#include "gvle_plugins.h"
+#include "gvle_widgets.h"
+#include "vlevpz.hpp"
+
 #include <vle/value/Boolean.hpp>
 #include <vle/value/Double.hpp>
 #include <vle/value/Integer.hpp>

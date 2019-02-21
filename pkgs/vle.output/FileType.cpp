@@ -33,8 +33,6 @@ namespace vle {
 namespace oov {
 namespace plugin {
 
-CSV::~CSV() = default;
-
 std::string
 CSV::extension() const
 {
@@ -63,8 +61,6 @@ CSV::writeHead(std::ostream& out, const std::vector<std::string>& heads)
     out << '\n';
 }
 
-Text::~Text() = default;
-
 std::string
 Text::extension() const
 {
@@ -86,8 +82,6 @@ Text::writeHead(std::ostream& out, const std::vector<std::string>& heads)
     }
     out << '\n';
 }
-
-Rdata::~Rdata() = default;
 
 std::string
 Rdata::extension() const

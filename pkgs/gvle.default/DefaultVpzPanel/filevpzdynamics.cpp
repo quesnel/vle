@@ -29,8 +29,8 @@
 #include <QUndoCommand>
 
 #include "filevpzdynamics.h"
+#include "gvle_widgets.h"
 #include "ui_filevpzdynamics.h"
-#include <vle/gvle/gvle_widgets.h>
 #include <vle/utils/Context.hpp>
 
 namespace vle {

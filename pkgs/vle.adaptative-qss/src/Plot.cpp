@@ -391,7 +391,8 @@ public:
             for (auto& elem : to_write)
                 elem.first = false;
 
-            assert((std::size_t)m_data[row].index < m_labels.size());
+            assert(static_cast<std::size_t>(m_data[row].index) <
+                   m_labels.size());
 
             to_write[m_data[row].index].first = true;
             to_write[m_data[row].index].second = m_data[row].value;

@@ -45,7 +45,6 @@ namespace plugin {
 
 File::File(const std::string& location)
   : Plugin(location)
-  , m_filetype(nullptr)
   , m_time(-1.0)
   , m_isstart(false)
   , m_havefirstevent(false)
@@ -58,7 +57,6 @@ File::~File()
 {
     m_file.close();
     m_buffer.clear();
-    delete m_filetype;
 }
 
 void
@@ -91,11 +89,11 @@ File::onParameter(const std::string& plugin,
         if (map.exist("type")) {
             std::string type(map.getString("type"));
             if (type == "csv") {
-                m_filetype = new CSV();
+                m_filetype = std::make_unique<CSV>();
             } else if (type == "rdata") {
-                m_filetype = new Rdata();
+                m_filetype = std::make_unique<Rdata>();
             } else if (type == "text") {
-                m_filetype = new Text();
+                m_filetype = std::make_unique<Text>();
             } else {
                 throw utils::ArgError("Output plug-in '%s': unknow type '%s'",
                                       plugin.c_str(),
@@ -127,9 +125,8 @@ File::onParameter(const std::string& plugin,
         }
     }
 
-    if (not m_filetype) {
-        m_filetype = new Text;
-    }
+    if (!m_filetype)
+        m_filetype = std::make_unique<Text>();
 
     utils::Path p;
     if (location.empty()) {
