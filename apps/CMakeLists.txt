@@ -8,3 +8,6 @@ if (WITH_GVLE)
   add_subdirectory(gvle)
 endif ()
 
+if (WITH_GLVLE)
+  add_subdirectory(glvle)
+endif ()

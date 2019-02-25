@@ -12,6 +12,7 @@ option(WITH_DEBUG "enable debug log message. It slows simulation [default: ON]" 
 option(WITH_GVLE "use QT to build gvle [default: on]" ON)
 option(WITH_DOXYGEN "build the documentation with doxygen [default: off]" OFF)
 option(WITH_CVLE "build cvle [default: on]" ON)
+option(WITH_GLVLE "build glvle [default: on]" ON)
 
 # Usefull variables
 set(VLE_MAJOR ${PROJECT_VERSION_MAJOR})
@@ -20,6 +21,7 @@ set(VLE_PATCH ${PROJECT_VERSION_PATCH})
 set(VLE_VERSION "${VLE_MAJOR}.${VLE_MINOR}.${VLE_PATCH}")
 set(VLE_ABI "${VLE_MAJOR}.${VLE_MINOR}")
 
+list(APPEND CMAKE_PREFIX_PATH /usr/lib/x86_64-linux-gnu/cmake)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
 find_package(EXPAT REQUIRED)
@@ -58,6 +60,10 @@ if (WITH_CVLE)
   if (NOT MPI_FOUND)
     message(FATAL_ERROR "MPI is required for cvle. Install openmpi, mpich2")
   endif ()
+endif ()
+
+if (WITH_GLVLE)
+  find_package(glfw3 REQUIRED)
 endif ()
 
 # Tries to found asciidoctor to generate manpages of the share/doc directory.
