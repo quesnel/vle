@@ -1,4 +1,21 @@
-set(glvle_sources main.cpp)
+set(glvle_sources main.cpp
+  ${PROJECT_SOURCE_DIR}/external/imgui/imgui.cpp
+  ${PROJECT_SOURCE_DIR}/external/imgui/imgui.h
+  ${PROJECT_SOURCE_DIR}/external/imgui/imgui_demo.cpp
+  ${PROJECT_SOURCE_DIR}/external/imgui/imgui_draw.cpp
+  ${PROJECT_SOURCE_DIR}/external/imgui/imgui_widgets.cpp
+  ${PROJECT_SOURCE_DIR}/external/imgui/imgui_internal.h
+  ${PROJECT_SOURCE_DIR}/external/imgui/imconfig.h
+  ${PROJECT_SOURCE_DIR}/external/imgui/imstb_rectpack.h
+  ${PROJECT_SOURCE_DIR}/external/imgui/imstb_textedit.h
+  ${PROJECT_SOURCE_DIR}/external/imgui/imstb_truetype.h
+  ${PROJECT_SOURCE_DIR}/external/imgui/examples/imgui_impl_glfw.cpp
+  ${PROJECT_SOURCE_DIR}/external/imgui/examples/imgui_impl_glfw.h
+  ${PROJECT_SOURCE_DIR}/external/imgui/examples/imgui_impl_opengl3.cpp
+  ${PROJECT_SOURCE_DIR}/external/imgui/examples/imgui_impl_opengl3.h
+  ${PROJECT_SOURCE_DIR}/external/imgui/examples/libs/gl3w/GL/gl3w.c
+  ${PROJECT_SOURCE_DIR}/external/imgui/examples/libs/gl3w/GL/gl3w.h
+  ${PROJECT_SOURCE_DIR}/external/imgui/examples/libs/gl3w/GL/glcorearb.h)
 
 if (WIN32)
   add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/vle.o
@@ -18,7 +35,10 @@ target_include_directories(glvle
   $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
   $<INSTALL_INTERFACE:include>
   PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR})
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${PROJECT_SOURCE_DIR}/external/imgui
+  ${PROJECT_SOURCE_DIR}/external/imgui/examples
+  ${PROJECT_SOURCE_DIR}/external/imgui/examples/libs/gl3w)
 
 target_compile_definitions(glvle
   PRIVATE
@@ -45,6 +65,8 @@ target_link_libraries(glvle
   threads
   Boost::boost
   EXPAT::EXPAT
-  $<$<PLATFORM_ID:Linux>:dl>)
+  $<$<PLATFORM_ID:Linux>:dl>
+  glfw
+  GL)
 
 install(TARGETS glvle DESTINATION bin)

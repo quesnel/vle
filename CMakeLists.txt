@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 project(VLE VERSION 2.1.0
-  LANGUAGES CXX)
+  LANGUAGES CXX C)
 
 # Use the GNU standard installation directories. See
 # https://cmake.org/cmake/help/v3.0/module/GNUInstallDirs.html
