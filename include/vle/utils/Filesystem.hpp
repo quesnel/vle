@@ -308,6 +308,14 @@ public:
 
 class VLE_API DirectoryIterator
 {
+public:
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = DirectoryEntry;
+    using difference_type = std::ptrdiff_t;
+    using pointer = value_type*;
+    using reference = value_type&;
+
+private:
     struct Pimpl;
     std::shared_ptr<Pimpl> m_pimpl;
 
