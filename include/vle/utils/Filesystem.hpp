@@ -329,10 +329,10 @@ public:
     DirectoryEntry* operator->() const;
 
     friend void swap(DirectoryIterator& lhs, DirectoryIterator& rhs);
-    friend bool operator==(const DirectoryIterator& lhs,
-                           const DirectoryIterator& rhs);
-    friend bool operator!=(const DirectoryIterator& lhs,
-                           const DirectoryIterator& rhs);
+    friend bool VLE_API operator==(const DirectoryIterator& lhs,
+                                   const DirectoryIterator& rhs);
+    friend bool VLE_API operator!=(const DirectoryIterator& lhs,
+                                   const DirectoryIterator& rhs);
 };
 }
 } // namespace vle utils
