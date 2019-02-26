@@ -115,6 +115,17 @@ Path::clear() noexcept
     m_path.clear();
 }
 
+Path
+Path::pop(const ptrdiff_t len)
+{
+    Path ret(*this);
+
+    if (!(len + 1 >= static_cast<ptrdiff_t>(m_path.size()) || len < 0))
+        ret.m_path.erase(ret.m_path.begin() + len + 1, ret.m_path.end());
+
+    return ret;
+}
+
 bool
 Path::is_absolute() const
 {

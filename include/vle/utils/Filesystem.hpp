@@ -117,6 +117,8 @@ public:
 
     void clear() noexcept;
 
+    Path pop(const ptrdiff_t len);
+
     bool is_absolute() const;
 
     bool exists() const;
