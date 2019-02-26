@@ -48,13 +48,15 @@
 // Include glfw3.h after our OpenGL definitions
 #include <GLFW/glfw3.h>
 
+#include "glvle.hpp"
+
 // [Win32] Our example includes a copy of glfw3.lib pre-compiled with VS2010 to
 // maximize ease of testing and compatibility with old VS compilers. To link
 // with VS2010-era libraries, VS2015+ requires linking with
 // legacy_stdio_definitions.lib, which we do using this pragma. Your own
 // project should not be affected, as you are likely to link with a newer
 // binary of GLFW that is adequate for your version of Visual Studio.
-#if defined(_MSC_VER) && (_MSC_VER >= 1900) &&                                \
+#if defined(_MSC_VER) && (_MSC_VER >= 1900) &&                                 \
   !defined(IMGUI_DISABLE_WIN32_FUNCTIONS)
 #pragma comment(lib, "legacy_stdio_definitions")
 #endif
@@ -62,7 +64,13 @@
 static void
 glfw_error_callback(int error, const char* description)
 {
-    fprintf(stderr, "Glfw Error %d: %s\n", error, description);
+    fprintf(
+      stderr,
+      "Glfw Error %d: %s\nTry to use declare environment variables before "
+      "running glvle. For example:\n$ MESA_GLSL_VERSION_OVERRIDE=450 env "
+      "MESA_GL_VERSION_OVERRIDE=4.5COMPAT ./glvle\n",
+      error,
+      description);
 }
 
 int
@@ -106,9 +114,8 @@ main(int, char**)
 #elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
     bool err = gladLoadGL() == 0;
 #else
-    bool err =
-      false; // If you use IMGUI_IMPL_OPENGL_LOADER_CUSTOM, your loader is
-             // likely to requires some form of initialization.
+    bool err = false; // If you use IMGUI_IMPL_OPENGL_LOADER_CUSTOM, your loader
+                      // is likely to requires some form of initialization.
 #endif
     if (err) {
         fprintf(stderr, "Failed to initialize OpenGL loader!\n");
@@ -178,6 +185,10 @@ main(int, char**)
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+
+        vle::glvle::show_app_menubar();
+
+        vle::glvle::show_main_window();
 
         // 1. Show the big demo window (Most of the sample code is in
         // ImGui::ShowDemoWindow()! You can browse its code to learn more about

@@ -1,4 +1,5 @@
-set(glvle_sources main.cpp
+set(glvle_sources main.cpp glvle.hpp menubar.cpp main_window.cpp
+    dialog.cpp
   ${PROJECT_SOURCE_DIR}/external/imgui/imgui.cpp
   ${PROJECT_SOURCE_DIR}/external/imgui/imgui.h
   ${PROJECT_SOURCE_DIR}/external/imgui/imgui_demo.cpp
