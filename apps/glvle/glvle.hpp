@@ -66,6 +66,22 @@ select_directory_dialog(const char* name,
                         const char* path,
                         std::string& out);
 
+/**
+ * @brief Modal dialog box to select a directory.
+ *
+ * @param dialog box name.
+ * @param descriptiopn of the dialog box.
+ * @param path default search path.
+ *
+ * @return A directory name and a boolean. If boolean is true, directory name
+ *     is valid.
+ */
+bool
+select_new_directory_dialog(const char* name,
+                            const char* descriptiopn,
+                            const char* path,
+                            std::string& out);
+
 void
 show_app_menubar();
 

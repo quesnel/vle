@@ -116,11 +116,14 @@ get_directory_entities(const vle::utils::Path& path)
     return ret;
 }
 
+#define MAX_FILE_DIALOG_NAME_BUFFER 1024
+
 struct file_dialog
 {
     static std::string selected;
     static vle::utils::Path current;
     static std::vector<vle::utils::Path> content;
+    static char input[MAX_FILE_DIALOG_NAME_BUFFER];
     static int filter;
 
     static void clear()
@@ -218,6 +221,7 @@ struct file_dialog
             // ImGui::InputText(
             //   "##FileName", selected.c_str(), MAX_FILE_DIALOG_NAME_BUFFER);
             // ImGui::PopItemWidth();
+            // static int filter;
 
             // if (!filters.empty()) {
             //     ImGui::SameLine();
@@ -343,7 +347,7 @@ struct file_dialog
             // ImGui::PushItemWidth(width);
             // ImGui::InputText(
             //   "##FileName", selected.c_str(), MAX_FILE_DIALOG_NAME_BUFFER);
-            // ImGui::PopItemWidth();
+            // ImGui::file_dialog::PopItemWidth();
 
             // if (!filters.empty()) {
             //     ImGui::SameLine();
@@ -388,11 +392,120 @@ struct file_dialog
 
         return res;
     }
+
+    bool select_new_directory(const char* name,
+                              const char* description,
+                              const char* path,
+                              std::string& out)
+    {
+        if (current.empty()) {
+            selected.clear();
+            current = get_default_directory(path);
+            content = get_directory_entities(current);
+            filter = -1;
+        }
+
+        auto next = vle::utils::Path{};
+        bool res = false;
+
+        if (ImGui::BeginPopupModal(name, nullptr)) {
+            bool path_click = false;
+            for (auto it = current.begin(), et = current.end(); it != et;
+                 ++it) {
+                if (it != current.begin())
+                    ImGui::SameLine();
+
+                if (ImGui::Button(it->c_str())) {
+                    next = current.pop(std::distance(current.begin(), it));
+                    selected.clear();
+                    path_click = true;
+                    break;
+                }
+            }
+
+            ImVec2 size = ImGui::GetContentRegionMax() - ImVec2(0.0f, 120.0f);
+            // ImGui::BeginChild("##FileDialog_FileList", size);
+            ImGui::BeginChild("##FDir", size);
+
+            if (ImGui::Selectable("..", (selected == ".."))) {
+                if (next.empty()) {
+                    next = current.parent_path();
+                    selected.clear();
+                    path_click = true;
+                }
+            }
+
+            std::string str;
+            for (auto it = content.begin(), et = content.end(); it != et;
+                 ++it) {
+                str = "[Dir] " + it->filename();
+
+                if (ImGui::Selectable(str.c_str(),
+                                      (it->filename() == selected))) {
+
+                    selected = it->filename();
+
+                    if (next.empty()) {
+                        selected.clear();
+                        next = current;
+                        next /= it->filename();
+                        path_click = true;
+                    }
+
+                    break;
+                }
+            }
+
+            ImGui::EndChild();
+
+            if (path_click) {
+                content = get_directory_entities(next);
+                current = next;
+            }
+
+            ImGui::Text("File Name: ");
+            ImGui::SameLine();
+
+            float width = ImGui::GetContentRegionAvailWidth();
+
+            ImGui::PushItemWidth(width);
+            ImGui::InputText("##FileName", input, MAX_FILE_DIALOG_NAME_BUFFER);
+            ImGui::PopItemWidth();
+
+            if (strlen(input) > 0) {
+                auto new_directory = current;
+                current /= input;
+
+                if (!current.exists()) {
+                    if (ImGui::Button("Cancel##FDir", ImVec2(120, 0))) {
+                        vle::utils::Path sel = current;
+                        sel /= selected;
+                        out = sel.string();
+                        ImGui::CloseCurrentPopup();
+                        res = true;
+                    }
+                }
+            }
+
+            ImGui::SetItemDefaultFocus();
+            ImGui::SameLine();
+
+            if (ImGui::Button("Ok##FDir", ImVec2(180, 0))) {
+                ImGui::CloseCurrentPopup();
+                res = true;
+            }
+
+            ImGui::EndPopup();
+        }
+
+        return res;
+    }
 };
 
 std::string file_dialog::selected;
 vle::utils::Path file_dialog::current;
 std::vector<vle::utils::Path> file_dialog::content;
+char file_dialog::input[MAX_FILE_DIALOG_NAME_BUFFER];
 int file_dialog::filter;
 
 bool
@@ -405,6 +518,17 @@ select_file_dialog(const char* name,
     file_dialog box;
 
     return box.select_file(name, description, filters, path, out);
+}
+
+bool
+select_new_directory_dialog(const char* name,
+                            const char* description,
+                            const char* path,
+                            std::string& out)
+{
+    file_dialog box;
+
+    return box.select_new_directory(name, description, path, out);
 }
 
 bool

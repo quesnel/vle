@@ -36,49 +36,50 @@ namespace glvle {
 void
 show_app_menubar()
 {
+    bool new_box = false;
+    bool open_box = false;
+    std::string selected;
+
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
-            static bool show_open_project = false;
-            if (ImGui::MenuItem("Open project", "Ctrl+O")) {
-                show_open_project = true;
-                ImGui::OpenPopup("Open package");
-                printf("show_open_project %d\n", show_open_project);
+            if (ImGui::MenuItem("New", "Ctrl+N"))
+                new_box = true;
+            if (ImGui::MenuItem("Open", "Ctrl+O"))
+                open_box = true;
+
+            ImGui::Separator();
+            if (ImGui::MenuItem("Save project", "Ctrl+S", false, false)) {
             }
 
-            printf("show_open_project %d\n", show_open_project);
-
-            if (show_open_project) {
-                printf("show_open_project %d\n", show_open_project);
-                std::string selected;
-                if (select_directory_dialog(
-                      "Open package",
-                      "Select the VPZ file of the package",
-                      "/home/gquesnel/devel/bits",
-                      selected)) {
-                    printf("%s\n", selected.c_str());
-                    show_open_project = false;
-                }
+            ImGui::Separator();
+            if (ImGui::MenuItem("Quit", "Ctrl+Q", false, false)) {
             }
-
-            // if (show_open_project) {
-            //     std::string selected;
-            //     if (select_directory_dialog("Open package",
-            //                                 "Select the package",
-            //                                 "/home/gquesnel",
-            //                                 selected)) {
-            //         printf("%s\n", selected.c_str());
-            //         show_open_project = false;
-            //     }
-            // }
-            // ImGui::Separator();
-            // if (ImGui::MenuItem("Save project", "Ctrl+S")) {
-            // }
-            // if (ImGui::MenuItem("Quit", "Alt+F4")) {
-            // }
             ImGui::EndMenu();
         }
+
         ImGui::EndMainMenuBar();
     }
+
+    if (new_box)
+        ImGui::OpenPopup("New package");
+
+    if (open_box)
+        ImGui::OpenPopup("Open package");
+
+    if (select_new_directory_dialog("New package",
+                                    "Select a new directory",
+                                    "/home/gquesnel/devel/bits",
+                                    selected)) {
+        printf("select_directory_dialog Yes '%s'!", selected.c_str());
+    }
+
+    if (select_directory_dialog("Open package",
+                                "Select a new directory",
+                                "/home/gquesnel/devel/bits",
+                                selected)) {
+        printf("select_directory_dialog Yes '%s'!", selected.c_str());
+    }
 }
-}
-}
+
+} // namespace glvle
+} // namespace vle
