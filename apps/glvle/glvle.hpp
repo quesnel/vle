@@ -80,7 +80,8 @@ bool
 select_new_directory_dialog(const char* name,
                             const char* descriptiopn,
                             const char* path,
-                            std::string& out);
+                            std::string& pathname,
+                            std::string& dirname);
 
 void
 show_app_menubar();

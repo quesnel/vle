@@ -38,7 +38,8 @@ show_app_menubar()
 {
     bool new_box = false;
     bool open_box = false;
-    std::string selected;
+    std::string path_name;
+    std::string dir_name;
 
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("File")) {
@@ -69,15 +70,24 @@ show_app_menubar()
     if (select_new_directory_dialog("New package",
                                     "Select a new directory",
                                     "/home/gquesnel/devel/bits",
-                                    selected)) {
-        printf("select_directory_dialog Yes '%s'!", selected.c_str());
+                                    path_name,
+                                    dir_name)) {
+        printf("select_directory_dialog p='%s' d=%s\n",
+               path_name.c_str(),
+               dir_name.c_str());
+
+        // if (!path_name.empty() && !dir_name.empty()) {
+        //     glvle.show_package_window = true;
+        //     glvle.package = dir_name;
+        //     glvle.working_dir = path_name;
+        // }
     }
 
     if (select_directory_dialog("Open package",
                                 "Select a new directory",
                                 "/home/gquesnel/devel/bits",
-                                selected)) {
-        printf("select_directory_dialog Yes '%s'!", selected.c_str());
+                                dir_name)) {
+        printf("select_directory_dialog Yes '%s'!", dir_name.c_str());
     }
 }
 
