@@ -30,8 +30,27 @@
 #include <string>
 #include <vector>
 
+#include <vle/utils/Package.hpp>
+
 namespace vle {
 namespace glvle {
+
+struct Glvle
+{
+    Glvle()
+      : ctx(vle::utils::make_context())
+    {}
+
+    std::string working_dir;
+    std::string package;
+
+    vle::utils::ContextPtr ctx;
+    std::shared_ptr<vle::utils::Package> pkg;
+
+    bool have_package = false;
+    bool show_main_menubar = true;
+    bool show_package_window = false;
+};
 
 /**
  * @brief Modal dialog box to select a directory.
@@ -64,7 +83,8 @@ bool
 select_directory_dialog(const char* name,
                         const char* descriptiopn,
                         const char* path,
-                        std::string& out);
+                        std::string& pathname,
+                        std::string& dirname);
 
 /**
  * @brief Modal dialog box to select a directory.
@@ -84,10 +104,13 @@ select_new_directory_dialog(const char* name,
                             std::string& dirname);
 
 void
-show_app_menubar();
+package_window(Glvle& gv);
 
 void
-show_main_window();
+show_app_menubar(Glvle& gv);
+
+void
+show_main_window(Glvle& gv);
 }
 }
 

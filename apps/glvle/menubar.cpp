@@ -34,7 +34,7 @@ namespace vle {
 namespace glvle {
 
 void
-show_app_menubar()
+show_app_menubar(Glvle& gv)
 {
     bool new_box = false;
     bool open_box = false;
@@ -49,12 +49,25 @@ show_app_menubar()
                 open_box = true;
 
             ImGui::Separator();
-            if (ImGui::MenuItem("Save project", "Ctrl+S", false, false)) {
+            if (ImGui::MenuItem("Close", nullptr, gv.have_package)) {
+                gv.show_package_window = false;
+                gv.package.clear();
+                gv.working_dir.clear();
+                gv.have_package = false;
             }
 
             ImGui::Separator();
             if (ImGui::MenuItem("Quit", "Ctrl+Q", false, false)) {
             }
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("View")) {
+            ImGui::MenuItem("Main menu bar", nullptr, gv.show_main_menubar);
+            ImGui::MenuItem("Package window",
+                            nullptr,
+                            &gv.show_package_window,
+                            gv.have_package);
             ImGui::EndMenu();
         }
 
@@ -72,22 +85,43 @@ show_app_menubar()
                                     "/home/gquesnel/devel/bits",
                                     path_name,
                                     dir_name)) {
-        printf("select_directory_dialog p='%s' d=%s\n",
-               path_name.c_str(),
-               dir_name.c_str());
+        if (!path_name.empty() && !dir_name.empty()) {
+            try {
+                vle::utils::Path::current_path(path_name);
+                gv.pkg =
+                  std::make_shared<vle::utils::Package>(gv.ctx, dir_name);
+                gv.pkg->create();
 
-        // if (!path_name.empty() && !dir_name.empty()) {
-        //     glvle.show_package_window = true;
-        //     glvle.package = dir_name;
-        //     glvle.working_dir = path_name;
-        // }
+                gv.show_package_window = true;
+                gv.package = dir_name;
+                gv.working_dir = path_name;
+                gv.have_package = true;
+            } catch (const std::exception& e) {
+                printf("%s.\n", e.what());
+            }
+        }
     }
 
     if (select_directory_dialog("Open package",
                                 "Select a new directory",
                                 "/home/gquesnel/devel/bits",
+                                path_name,
                                 dir_name)) {
-        printf("select_directory_dialog Yes '%s'!", dir_name.c_str());
+        if (!dir_name.empty()) {
+            try {
+                vle::utils::Path p(path_name);
+                vle::utils::Path::current_path(p);
+                gv.pkg =
+                  std::make_shared<vle::utils::Package>(gv.ctx, dir_name);
+
+                gv.show_package_window = true;
+                gv.package = dir_name;
+                gv.working_dir = path_name;
+                gv.have_package = true;
+            } catch (const std::exception& e) {
+                printf("%s.\n", e.what());
+            }
+        }
     }
 }
 

@@ -70,16 +70,16 @@ show_main_window()
         ImGui::OpenPopup("Open package");
     }
 
-    if (show_open_package) {
-        std::string selected;
-        if (select_directory_dialog("Open package",
-                                    "Select the VPZ file of the package",
-                                    "/home/gquesnel/devel/bits",
-                                    selected)) {
-            printf("%s\n", selected.c_str());
-            show_open_package = false;
-        }
-    }
+    // if (show_open_package) {
+    //     std::string selected;
+    //     if (select_directory_dialog("Open package",
+    //                                 "Select the VPZ file of the package",
+    //                                 "/home/gquesnel/devel/bits",
+    //                                 selected)) {
+    //         printf("%s\n", selected.c_str());
+    //         show_open_package = false;
+    //     }
+    // }
 
     ImGui::InputText("vpz", vpz_name, IM_ARRAYSIZE(vpz_name));
     ImGui::SameLine();

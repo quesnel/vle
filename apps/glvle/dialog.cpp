@@ -65,8 +65,7 @@ get_all_entities(const vle::utils::Path& path, const char* filter)
         ret.erase(std::remove_if(ret.begin(),
                                  ret.end(),
                                  [&filter](const auto& p) {
-                                     if (p.is_file() &&
-                                         p.extension() == filter)
+                                     if (p.is_file() && p.extension() == filter)
                                          return true;
 
                                      return false;
@@ -271,18 +270,18 @@ struct file_dialog
     bool select_directory(const char* name,
                           const char* description,
                           const char* path,
-                          std::string& out)
+                          std::string& pathname,
+                          std::string& dirname)
     {
         if (current.empty()) {
-            selected.clear();
             current = get_default_directory(path);
             content = get_directory_entities(current);
-            filter = -1;
         }
 
         auto next = vle::utils::Path{};
         bool res = false;
 
+        ImGui::SetNextWindowSize(ImVec2(550, 680), true);
         if (ImGui::BeginPopupModal(name, nullptr)) {
             bool path_click = false;
             for (auto it = current.begin(), et = current.end(); it != et;
@@ -298,14 +297,20 @@ struct file_dialog
                 }
             }
 
-            // ImVec2 size = ImGui::GetContentRegionMax() - ImVec2(0.0f,
-            // 120.0f); ImGui::BeginChild("##FileDialog_FileList", size);
-            ImGui::BeginChild("##FDir");
+            ImVec2 size = ImGui::GetContentRegionMax();
+            size.y -= 120;
+            ImGui::BeginChild("##FDir", size);
 
-            if (ImGui::Selectable("..", (selected == ".."))) {
+            if (ImGui::Selectable("..", false)) {
                 if (next.empty()) {
                     next = current.parent_path();
-                    selected.clear();
+                    path_click = true;
+                }
+            }
+
+            if (ImGui::Selectable(".", false)) {
+                if (next.empty()) {
+                    next = current;
                     path_click = true;
                 }
             }
@@ -338,52 +343,36 @@ struct file_dialog
                 current = next;
             }
 
-            ImGui::Text("File Name:##FDir");
-            ImGui::SameLine();
+            bool show_ok_button = false;
+            float width = ImGui::GetContentRegionAvailWidth();
+            if (!current.empty()) {
+                auto cmake_exists = current;
+                auto descr_exists = current;
 
-            // float width = ImGui::GetContentRegionAvailWidth();
-            // if (filters)
-            //     width -= 120.0f;
+                cmake_exists /= "CMakeLists.txt";
+                descr_exists /= "Description.txt";
 
-            // ImGui::PushItemWidth(width);
-            // ImGui::InputText(
-            //   "##FileName", selected.c_str(), MAX_FILE_DIALOG_NAME_BUFFER);
-            // ImGui::file_dialog::PopItemWidth();
+                if (cmake_exists.exists() && descr_exists.exists()) {
+                    show_ok_button = true;
+                    width /= 2.0f;
 
-            // if (!filters.empty()) {
-            //     ImGui::SameLine();
-
-            //     ImGui::PushItemWidth(100.0f);
-            //     bool comboClick =
-            //       ImGui::Combo("##Filters", &FilterIndex, vFilters) ||
-            //       m_CurrentFilterExt.size() == 0;
-            //     ImGui::PopItemWidth();
-            //     if (comboClick == true) {
-            //         int itemIdx = 0;
-            //         const char* p = vFilters;
-            //         while (*p) {
-            //             if (FilterIndex == itemIdx) {
-            //                 m_CurrentFilterExt = std::string(p);
-            //                 break;
-            //             }
-            //             p += strlen(p) + 1;
-            //             itemIdx++;
-            //         }
-            //     }
-            // }
-
-            if (ImGui::Button("Cancel##FDir", ImVec2(120, 0))) {
-                vle::utils::Path sel = current;
-                sel /= selected;
-                out = sel.string();
-                ImGui::CloseCurrentPopup();
-                res = true;
+                    if (ImGui::Button("Ok", ImVec2(width, 0))) {
+                        pathname = current.parent_path().string();
+                        dirname = current.filename();
+                        ImGui::CloseCurrentPopup();
+                        res = true;
+                    }
+                }
             }
 
             ImGui::SetItemDefaultFocus();
-            ImGui::SameLine();
 
-            if (ImGui::Button("Ok##FDif", ImVec2(180, 0))) {
+            if (show_ok_button)
+                ImGui::SameLine();
+
+            if (ImGui::Button("Cancel", ImVec2(width, 0))) {
+                pathname.clear();
+                dirname.clear();
                 ImGui::CloseCurrentPopup();
                 res = true;
             }
@@ -403,7 +392,6 @@ struct file_dialog
         if (current.empty()) {
             current = get_default_directory(path);
             content = get_directory_entities(current);
-            filter = -1;
         }
 
         auto next = vle::utils::Path{};
@@ -419,7 +407,6 @@ struct file_dialog
 
                 if (ImGui::Button(it->c_str())) {
                     next = current.pop(std::distance(current.begin(), it));
-                    selected.clear();
                     path_click = true;
                     break;
                 }
@@ -432,7 +419,6 @@ struct file_dialog
             if (ImGui::Selectable("..", false)) {
                 if (next.empty()) {
                     next = current.parent_path();
-                    selected.clear();
                     path_click = true;
                 }
             }
@@ -440,7 +426,6 @@ struct file_dialog
             if (ImGui::Selectable(".", false)) {
                 if (next.empty()) {
                     next = current;
-                    selected.clear();
                     path_click = true;
                 }
             }
@@ -544,19 +529,19 @@ select_new_directory_dialog(const char* name,
 {
     file_dialog box;
 
-    return box.select_new_directory(
-      name, description, path, pathname, dirname);
+    return box.select_new_directory(name, description, path, pathname, dirname);
 }
 
 bool
 select_directory_dialog(const char* name,
                         const char* description,
                         const char* path,
-                        std::string& out)
+                        std::string& pathname,
+                        std::string& dirname)
 {
     file_dialog box;
 
-    return box.select_directory(name, description, path, out);
+    return box.select_directory(name, description, path, pathname, dirname);
 }
 }
 }
