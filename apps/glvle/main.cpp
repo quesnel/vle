@@ -206,6 +206,17 @@ main(int, char**)
             }
         }
 
+        {
+            auto it = gv.vpz_files.begin();
+
+            while (it != gv.vpz_files.end()) {
+                if (!vle::glvle::vpz_window(gv, it->first, it->second))
+                    it = gv.vpz_files.erase(it);
+                else
+                    ++it;
+            }
+        }
+
         // 1. Show the big demo window (Most of the sample code is in
         // ImGui::ShowDemoWindow()! You can browse its code to learn more about
         // Dear ImGui!).

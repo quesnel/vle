@@ -27,14 +27,50 @@
 #ifndef ORG_VLEPROJECT_GLVLE_HPP
 #define ORG_VLEPROJECT_GLVLE_HPP
 
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 #include <vle/utils/Package.hpp>
+#include <vle/vpz/CoupledModel.hpp>
+#include <vle/vpz/Vpz.hpp>
 
 namespace vle {
 namespace glvle {
+
+struct Gltxt
+{
+    enum class status
+    {
+        success,
+        uninitialized,
+        access_file_error,
+        open_file_error,
+        big_file_error,
+    };
+
+    std::string content;
+    status st = status::uninitialized;
+};
+
+struct Glvpz
+{
+    Glvpz() = default;
+    // Glvpz(Glvpz&& other) = default;
+    // Glvpz(const Glvpz& other) = default;
+
+    enum class status
+    {
+        success,
+        uninitialized,
+        read_error
+    };
+
+    std::shared_ptr<vle::vpz::Vpz> vpz;
+    vle::vpz::CoupledModel* coupled = nullptr;
+    status st = status::uninitialized;
+};
 
 struct Glvle
 {
@@ -49,7 +85,7 @@ struct Glvle
     std::shared_ptr<vle::utils::Package> pkg;
 
     std::unordered_map<std::string, std::string> txt_files;
-    std::unordered_map<std::string, std::string> vpz_files;
+    std::unordered_map<std::string, Glvpz> vpz_files;
 
     bool have_package = false;
     bool show_main_menubar = true;
@@ -118,7 +154,11 @@ show_main_window(Glvle& gv);
 
 bool
 text_window(const std::string& file, std::string& content);
-}
-}
+
+bool
+vpz_window(Glvle& gl, const std::string& file, Glvpz& vpz);
+
+} // namespace glvle
+} // namespace vle
 
 #endif

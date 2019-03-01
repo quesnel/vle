@@ -88,7 +88,10 @@ struct node_visitor : public boost::static_visitor<void>
 
         ImGui::TreeNodeEx(f.path.filename().c_str(), node_flags);
         if (ImGui::IsItemClicked()) {
-            gv.txt_files[f.path.string()] = std::string();
+            if (f.path.extension() == ".vpz")
+                gv.vpz_files[f.path.string()] = vle::glvle::Glvpz();
+            else
+                gv.txt_files[f.path.string()] = std::string();
         }
     }
 
