@@ -28,6 +28,7 @@
 #define ORG_VLEPROJECT_GLVLE_HPP
 
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <vle/utils/Package.hpp>
@@ -46,6 +47,9 @@ struct Glvle
 
     vle::utils::ContextPtr ctx;
     std::shared_ptr<vle::utils::Package> pkg;
+
+    std::unordered_map<std::string, std::string> txt_files;
+    std::unordered_map<std::string, std::string> vpz_files;
 
     bool have_package = false;
     bool show_main_menubar = true;
@@ -111,6 +115,9 @@ show_app_menubar(Glvle& gv);
 
 void
 show_main_window(Glvle& gv);
+
+bool
+text_window(const std::string& file, std::string& content);
 }
 }
 

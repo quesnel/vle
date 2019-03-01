@@ -68,7 +68,17 @@ struct directory
 
 struct node_visitor : public boost::static_visitor<void>
 {
-public:
+    Glvle& gv;
+    // const vle::utils::Path& current;
+
+    // node_visitor(Glvle& gv_, const vle::utils::Path& current_)
+    //   : gv(gv_)
+    //   , current(current_)
+    // {}
+    node_visitor(Glvle& gv_)
+      : gv(gv_)
+    {}
+
     void operator()(const file& f) const
     {
         ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_OpenOnArrow |
@@ -78,7 +88,7 @@ public:
 
         ImGui::TreeNodeEx(f.path.filename().c_str(), node_flags);
         if (ImGui::IsItemClicked()) {
-            printf("need to open file\n");
+            gv.txt_files[f.path.string()] = std::string();
         }
     }
 
@@ -86,7 +96,7 @@ public:
     {
         if (ImGui::TreeNode(dir.path.filename().c_str())) {
             for (const auto& n : dir.children)
-                boost::apply_visitor(node_visitor(), n);
+                boost::apply_visitor(node_visitor(gv), n);
             ImGui::TreePop();
         }
     }
@@ -163,7 +173,7 @@ package_window(Glvle& gv)
     ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_DefaultOpen;
     if (ImGui::TreeNodeEx(gv.package.c_str(), node_flags)) {
         for (const auto& n : hierarchy.children)
-            boost::apply_visitor(node_visitor(), n);
+            boost::apply_visitor(node_visitor(gv), n);
         ImGui::TreePop();
     }
 
