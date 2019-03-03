@@ -91,7 +91,7 @@ struct node_visitor : public boost::static_visitor<void>
             if (f.path.extension() == ".vpz")
                 gv.vpz_files[f.path.string()] = vle::glvle::Glvpz();
             else
-                gv.txt_files[f.path.string()] = std::string();
+                gv.txt_files[f.path.string()] = vle::glvle::Gltxt();
         }
     }
 

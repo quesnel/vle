@@ -84,7 +84,7 @@ struct Glvle
     vle::utils::ContextPtr ctx;
     std::shared_ptr<vle::utils::Package> pkg;
 
-    std::unordered_map<std::string, std::string> txt_files;
+    std::unordered_map<std::string, Gltxt> txt_files;
     std::unordered_map<std::string, Glvpz> vpz_files;
 
     bool have_package = false;
@@ -153,7 +153,7 @@ void
 show_main_window(Glvle& gv);
 
 bool
-text_window(const std::string& file, std::string& content);
+text_window(const std::string& file, Gltxt& txt);
 
 bool
 vpz_window(Glvle& gl, const std::string& file, Glvpz& vpz);

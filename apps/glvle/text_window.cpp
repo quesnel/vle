@@ -35,7 +35,7 @@ namespace vle {
 namespace glvle {
 
 bool
-text_window(const std::string& file, std::string& content)
+text_window(const std::string& file, Gltxt& txt)
 {
     bool ret = true;
 
@@ -45,24 +45,48 @@ text_window(const std::string& file, std::string& content)
         return ret;
     }
 
-    if (content.empty()) {
+    if (txt.st == Gltxt::status::uninitialized) {
         vle::utils::Path f(file);
-        if (f.file_size() <= 1024 * 1024) {
-            std::ifstream t(file);
-            std::stringstream buffer;
-            buffer << t.rdbuf();
-            content = buffer.str();
+
+        if (!f.exists()) {
+            txt.st = Gltxt::status::access_file_error;
+        } else {
+            if (f.file_size() <= 1024 * 1024) {
+                std::ifstream t(file);
+                if (!t.is_open()) {
+                    txt.st = Gltxt::status::open_file_error;
+                } else {
+                    std::stringstream buffer;
+                    buffer << t.rdbuf();
+                    txt.content = buffer.str();
+
+                    txt.st = Gltxt::status::success;
+                }
+            } else {
+                txt.st = Gltxt::status::big_file_error;
+            }
         }
     }
 
-    ImGuiInputTextFlags flags =
-      ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_ReadOnly;
+    if (txt.st == Gltxt::status::success) {
+        ImGuiInputTextFlags flags =
+            ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_ReadOnly;
 
-    ImGui::InputTextMultiline("##source",
-                              &content[0],
-                              content.size(),
-                              ImGui::GetContentRegionAvail(),
-                              flags);
+        ImGui::InputTextMultiline("##source",
+                                  &txt.content[0],
+                                  txt.content.size(),
+                                  ImGui::GetContentRegionAvail(),
+                                  flags);
+    } else {
+        if (txt.st == Gltxt::status::access_file_error)
+            ImGui::Text("Fail to access file");
+        else if (txt.st == Gltxt::status::open_file_error)
+            ImGui::Text("Fail to open file");
+        else if (txt.st == Gltxt::status::big_file_error)
+            ImGui::Text("File too big for glvle");
+        else
+            ImGui::Text("Internal error");
+    }
 
     ImGui::End();
     return ret;
