@@ -28,6 +28,8 @@
 #include <fstream>
 #include <sstream>
 
+#include <vle/vpz/CoupledModel.hpp>
+
 #include "glvle.hpp"
 
 #include "imgui.h"
@@ -72,35 +74,309 @@ show_vpz(const vle::vpz::CoupledModel* mdl)
 
 struct Glnode
 {
-    vle::vpz::BaseModel* mdl;
+    enum class model_type
+    {
+        atomic,
+        coupled
+    };
+
+    std::string name;
+    std::string dynamics;
+    std::string observables;
+    std::vector<std::string> conditions;
+    std::vector<std::string> input_slots;
+    std::vector<std::string> output_slots;
+    model_type type;
+
     ImVec2 position;
     ImVec2 size;
 
-    Glnode(vle::vpz::BaseModel* mdl_)
-      : mdl(mdl_)
-      , position(mdl_->x() <= 0 ? 50 : mdl_->x(),
-                 mdl_->y() <= 0 ? 50 : mdl_->y())
+    Glnode()
+      : type(model_type::atomic)
     {}
 
-    ImVec2 get_input_slot_pos(int slot_no const)
+    void update_size() noexcept
     {
-        return ImVec2(position.x,
-                      position.y + size.y * float{ slot_no + 1 } /
-                                     float{ mdl->getInputPortNumber() });
+        size = ImVec2(size.x,
+                      size.y * static_cast<float>(std::max(
+                                 input_slots.size(), output_slots.size())));
     }
 
-    ImVec2 get_input_slot_pos(int slot_no const)
+    ImVec2 get_input_slot_pos(const int slot_no) noexcept
+    {
+        return ImVec2(position.x,
+                      position.y + size.y * static_cast<float>(slot_no + 1) /
+                                     static_cast<float>(input_slots.size()));
+    }
+
+    ImVec2 get_output_slot_pos(const int slot_no) noexcept
     {
         return ImVec2(position.x + size.x,
-                      position.y + size.y * float{ slot_no + 1 } /
-                                     float{ mdl->getOutputPortNumber() });
+                      position.y + size.y * static_cast<float>(slot_no + 1) /
+                                     static_cast<float>(output_slots.size()));
     }
+};
+
+int
+get_slot_index(const std::vector<std::string>& vec,
+               const std::string& str) noexcept
+{
+    auto found = std::find(vec.cbegin(), vec.cend(), str);
+
+    assert(found != vec.cend());
+
+    return static_cast<int>(std::distance(vec.cbegin(), found));
+}
+
+struct Glinputlink
+{
+    Glinputlink(int input_slot_, int output_id_, int output_slot_)
+      : input_slot(input_slot_)
+      , output_id(output_id_)
+      , output_slot(output_slot_)
+    {}
+
+    int input_slot;
+    int output_id;
+    int output_slot;
+};
+
+struct Gloutputlink
+{
+    Gloutputlink(int input_id_, int input_slot_, int output_slot_)
+      : input_id(input_id_)
+      , input_slot(input_slot_)
+      , output_slot(output_slot_)
+    {}
+
+    int input_id;
+    int input_slot;
+    int output_slot;
 };
 
 struct Gllink
 {
-    int input_id, input_slot, output_id, output_slot;
+    Gllink(int input_id_, int input_slot_, int output_id_, int output_slot_)
+      : input_id(input_id_)
+      , input_slot(input_slot_)
+      , output_id(output_id_)
+      , output_slot(output_slot_)
+    {}
+
+    int input_id;
+    int input_slot;
+    int output_id;
+    int output_slot;
 };
+
+struct Glgraph
+{
+    Glgraph() = default;
+
+    Glgraph(Glnode node_,
+            std::vector<Glnode> nodes_,
+            std::vector<Gllink> links_,
+            std::vector<Glinputlink> input_links_,
+            std::vector<Gloutputlink> output_links_)
+      : node(node_)
+      , nodes(nodes_)
+      , links(links_)
+      , input_links(input_links_)
+      , output_links(output_links_)
+    {}
+
+    Glnode node;
+    std::vector<Glnode> nodes;
+    std::vector<Gllink> links;
+    std::vector<Glinputlink> input_links;
+    std::vector<Gloutputlink> output_links;
+};
+
+class Glcache
+{
+public:
+    struct element
+    {
+        element(const std::string& name_, const int position_)
+          : name(name_)
+          , position(position_)
+        {}
+
+        std::string name;
+        int position;
+    };
+
+private:
+    std::vector<element> elements;
+
+public:
+    Glcache()
+    {
+        elements.reserve(size_t{ 32 });
+    }
+
+    template<class... Args>
+    void emplace(Args&&... args)
+    {
+        elements.emplace_back(std::forward<Args>(args)...);
+    }
+
+    size_t size() const noexcept
+    {
+        return elements.size();
+    }
+
+    void sort() noexcept
+    {
+        std::sort(
+          elements.begin(),
+          elements.end(),
+          [](const auto& lhs, const auto& rhs) { return lhs.name < rhs.name; });
+    }
+
+    int get(const std::string& str) const noexcept
+    {
+        struct comparator
+        {
+            bool operator()(const element& lhs, const std::string& str) const
+              noexcept
+            {
+                return lhs.name < str;
+            }
+
+            bool operator()(const std::string& str, const element& rhs) const
+              noexcept
+            {
+                return str < rhs.name;
+            }
+        };
+
+        auto found = std::equal_range(
+          elements.cbegin(), elements.cend(), str, comparator{});
+
+        assert(std::distance(found.first, found.second) == 1);
+
+        return found.first->position;
+    }
+};
+
+Glgraph
+convert_vpz(const vle::vpz::CoupledModel* mdl)
+{
+    Glnode node;
+    std::vector<Glnode> nodes;
+    std::vector<Gllink> links;
+    std::vector<Glinputlink> input_links;
+    std::vector<Gloutputlink> output_links;
+
+    Glcache cache;
+
+    // Convert the coupled model.
+
+    node.name = mdl->getName();
+    node.position = ImVec2(mdl->x(), mdl->y());
+    node.type = Glnode::model_type::coupled;
+
+    std::transform(mdl->getInputPortList().cbegin(),
+                   mdl->getInputPortList().cend(),
+                   std::back_inserter(node.input_slots),
+                   [](const auto& elem) { return elem.first; });
+
+    std::transform(mdl->getOutputPortList().cbegin(),
+                   mdl->getOutputPortList().cend(),
+                   std::back_inserter(node.output_slots),
+                   [](const auto& elem) { return elem.first; });
+
+    // Convert the internal models.
+    // std::sort<std::string, int> name;
+
+    for (const auto& child : mdl->getModelList()) {
+        cache.emplace(child.second->getName(), static_cast<int>(cache.size()));
+
+        nodes.emplace_back();
+
+        nodes.back().name = child.second->getName();
+        nodes.back().position = ImVec2(child.second->x(), child.second->y());
+
+        std::transform(child.second->getInputPortList().cbegin(),
+                       child.second->getInputPortList().cend(),
+                       std::back_inserter(nodes.back().input_slots),
+                       [](const auto& elem) { return elem.first; });
+
+        std::transform(child.second->getOutputPortList().cbegin(),
+                       child.second->getOutputPortList().cend(),
+                       std::back_inserter(nodes.back().output_slots),
+                       [](const auto& elem) { return elem.first; });
+
+        if (child.second->isAtomic()) {
+            nodes.back().conditions =
+              static_cast<vle::vpz::AtomicModel* const>(child.second)
+                ->conditions();
+            nodes.back().dynamiacs =
+              static_cast<vle::vpz::AtomicModel* const>(child.second)
+                ->dynamics();
+            nodes.back().observables =
+              static_cast<vle::vpz::AtomicModel* const>(child.second)
+                ->observables();
+            nodes.back().type = Glnode::model_type::atomic;
+        } else {
+            nodes.back().type = Glnode::model_type::coupled;
+        }
+    }
+
+    cache.sort();
+
+    // Convert internal connections
+
+    for (const auto& it : mdl->getInternalOutputList()) {
+        int output_slot = get_slot_index(node.output_slots);
+
+        const std::string& port(it.first);
+        const ModelPortList& lst(it.second);
+        for (const auto& jt : lst) {
+            int input_id = cache.get(jf.first->getName());
+            int input_slot =
+              get_slot_index(nodes[input_id].output_slots, jt.second);
+
+            ouput_links.emplace_back(input_id, input_slot, output_slot);
+        }
+    }
+
+    for (const auto& it : mdl->getInternalInputList()) {
+        int input_slot = get_slot_index(node.input_slots);
+
+        const std::string& port(it.first);
+        const ModelPortList& lst(it.second);
+        for (const auto& jt : lst) {
+            int output_id = cache.get(jt.first->getName());
+            int output_slot =
+              get_slot_index(nodes[output_id].input_slot, jt.second);
+
+            input_links.emplace_back(input_slot, output_id, output_slot);
+        }
+    }
+
+    for (const auto& it : mdl->getModelList()) {
+        const ConnectionList& cnts(it.second->getOutputPortList());
+        for (const auto& cnt : cnts) {
+            for (auto kt = cnt.second.begin(); kt != cnt.second.end(); ++kt) {
+                if (kt->first != this) {
+                    int input_id = cache.get(it.second->getName());
+                    int input_slot =
+                      get_slot_index(nodes[input_id].input_slots, cnt.first);
+                    int output_id = cache.get(kt->first->getName());
+                    int output_slot =
+                      get_slot_index(nodes[output_id].output_slots, kt->second);
+
+                    links.emplace_back(
+                      input_id, input_slot, output_id, output_slot);
+                }
+            }
+        }
+    }
+
+    return Glgraph(node, nodes, links, input_links, output_links);
+}
 
 static void
 show_vpz(Glvle& /*gl*/, const std::string& /*file*/, Glvpz& vpz)
@@ -167,14 +443,6 @@ show_vpz(Glvle& /*gl*/, const std::string& /*file*/, Glvpz& vpz)
                                GRID_COLOR);
     }
 
-    // Display nodes
-
-    const auto& root =
-      static_cast<vle::vpz::CoupledModel*>(vpz.vpz->project().model().node());
-
-    for (const auto& mdl : root->getModelList()) {
-    }
-
     ImGui::PopItemWidth();
     ImGui::EndChild();
     ImGui::PopStyleColor();
@@ -229,11 +497,11 @@ vpz_window(Glvle& gl, const std::string& file, Glvpz& vpz)
 }
 
 // Creating a node graph editor for ImGui
-// Quick demo, not production code! This is more of a demo of how to use ImGui
-// to create custom stuff. Better version by @daniel_collin here
+// Quick demo, not production code! This is more of a demo of how to use
+// ImGui to create custom stuff. Better version by @daniel_collin here
 // https://gist.github.com/emoon/b8ff4b4ce4f1b43e79f2 See
-// https://github.com/ocornut/imgui/issues/306 v0.03: fixed grid offset issue,
-// inverted sign of 'scrolling' Animated gif:
+// https://github.com/ocornut/imgui/issues/306 v0.03: fixed grid offset
+// issue, inverted sign of 'scrolling' Animated gif:
 // https://cloud.githubusercontent.com/assets/8225057/9472357/c0263c04-4b4c-11e5-9fdf-2cd4f33f6582.gif
 
 // NB: You can use math functions/operators on ImVec2 if you #define
@@ -256,8 +524,9 @@ operator-(const ImVec2& lhs, const ImVec2& rhs)
 // static void
 // ShowExampleAppCustomNodeGraph(bool* opened)
 // {
-//     ImGui::SetNextWindowSize(ImVec2(700, 600), ImGuiSetCond_FirstUseEver);
-//     if (!ImGui::Begin("Example: Custom Node Graph", opened)) {
+//     ImGui::SetNextWindowSize(ImVec2(700, 600),
+//     ImGuiSetCond_FirstUseEver); if (!ImGui::Begin("Example: Custom Node
+//     Graph", opened)) {
 //         ImGui::End();
 //         return;
 //     }
@@ -331,10 +600,11 @@ operator-(const ImVec2& lhs, const ImVec2& rhs)
 //           0, "MainTex", ImVec2(40, 50), 0.5f, ImColor(255, 100, 100), 1,
 //           1));
 //         nodes.push_back(Node(
-//           1, "BumpMap", ImVec2(40, 150), 0.42f, ImColor(200, 100, 200), 1,
-//           1));
+//           1, "BumpMap", ImVec2(40, 150), 0.42f, ImColor(200, 100, 200),
+//           1, 1));
 //         nodes.push_back(Node(
-//           2, "Combine", ImVec2(270, 80), 1.0f, ImColor(0, 200, 100), 2, 2));
+//           2, "Combine", ImVec2(270, 80), 1.0f, ImColor(0, 200, 100), 2,
+//           2));
 //         links.push_back(NodeLink(0, 0, 2, 0));
 //         links.push_back(NodeLink(1, 0, 2, 1));
 //         inited = true;
@@ -468,7 +738,8 @@ operator-(const ImVec2& lhs, const ImVec2& rhs)
 //         draw_list->AddRectFilled(
 //           node_rect_min, node_rect_max, node_bg_color, 4.0f);
 //         draw_list->AddRect(
-//           node_rect_min, node_rect_max, IM_COL32(100, 100, 100, 255), 4.0f);
+//           node_rect_min, node_rect_max, IM_COL32(100, 100, 100,
+//           255), 4.0f);
 //         for (int slot_idx = 0; slot_idx < node->InputsCount; slot_idx++)
 //             draw_list->AddCircleFilled(offset +
 //                                          node->GetInputSlotPos(slot_idx),
@@ -487,8 +758,8 @@ operator-(const ImVec2& lhs, const ImVec2& rhs)
 //     // Open context menu
 //     if (!ImGui::IsAnyItemHovered() && ImGui::IsMouseHoveringWindow() &&
 //         ImGui::IsMouseClicked(1)) {
-//         node_selected = node_hovered_in_list = node_hovered_in_scene = -1;
-//         open_context_menu = true;
+//         node_selected = node_hovered_in_list = node_hovered_in_scene =
+//         -1; open_context_menu = true;
 //     }
 //     if (open_context_menu) {
 //         ImGui::OpenPopup("context_menu");
