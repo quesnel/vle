@@ -28,10 +28,12 @@
 #include <fstream>
 #include <sstream>
 
+#include <vle/vpz/AtomicModel.hpp>
 #include <vle/vpz/CoupledModel.hpp>
 
 #include "glvle.hpp"
 
+#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include "imgui.h"
 
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -228,10 +230,11 @@ public:
 
     void sort() noexcept
     {
-        std::sort(
-          elements.begin(),
-          elements.end(),
-          [](const auto& lhs, const auto& rhs) { return lhs.name < rhs.name; });
+        std::sort(elements.begin(),
+                  elements.end(),
+                  [](const auto& lhs, const auto& rhs) {
+                      return lhs.name < rhs.name;
+                  });
     }
 
     int get(const std::string& str) const noexcept
@@ -260,145 +263,223 @@ public:
     }
 };
 
-Glgraph
-convert_vpz(const vle::vpz::CoupledModel* mdl)
-{
-    Glnode node;
-    std::vector<Glnode> nodes;
-    std::vector<Gllink> links;
-    std::vector<Glinputlink> input_links;
-    std::vector<Gloutputlink> output_links;
+// static Glgraph
+// convert_vpz(const vle::vpz::CoupledModel* mdl)
+// {
+//     Glnode node;
+//     std::vector<Glnode> nodes;
+//     std::vector<Gllink> links;
+//     std::vector<Glinputlink> input_links;
+//     std::vector<Gloutputlink> output_links;
 
-    Glcache cache;
+//     Glcache cache;
 
-    // Convert the coupled model.
+//     node.name = mdl->getName();
+//     node.position =
+//       ImVec2(static_cast<float>(mdl->x()), static_cast<float>(mdl->y()));
+//     node.type = Glnode::model_type::coupled;
 
-    node.name = mdl->getName();
-    node.position = ImVec2(mdl->x(), mdl->y());
-    node.type = Glnode::model_type::coupled;
+//     std::transform(mdl->getInputPortList().cbegin(),
+//                    mdl->getInputPortList().cend(),
+//                    std::back_inserter(node.input_slots),
+//                    [](const auto& elem) { return elem.first; });
 
-    std::transform(mdl->getInputPortList().cbegin(),
-                   mdl->getInputPortList().cend(),
-                   std::back_inserter(node.input_slots),
-                   [](const auto& elem) { return elem.first; });
+//     std::transform(mdl->getOutputPortList().cbegin(),
+//                    mdl->getOutputPortList().cend(),
+//                    std::back_inserter(node.output_slots),
+//                    [](const auto& elem) { return elem.first; });
 
-    std::transform(mdl->getOutputPortList().cbegin(),
-                   mdl->getOutputPortList().cend(),
-                   std::back_inserter(node.output_slots),
-                   [](const auto& elem) { return elem.first; });
+//     for (const auto& child : mdl->getModelList()) {
+//         cache.emplace(child.second->getName(),
+//         static_cast<int>(cache.size()));
 
-    // Convert the internal models.
-    // std::sort<std::string, int> name;
+//         nodes.emplace_back();
 
-    for (const auto& child : mdl->getModelList()) {
-        cache.emplace(child.second->getName(), static_cast<int>(cache.size()));
+//         nodes.back().name = child.second->getName();
+//         nodes.back().position =
+//         ImVec2(static_cast<float>(child.second->x()),
+//                                        static_cast<float>(child.second->y()));
 
-        nodes.emplace_back();
+//         std::transform(child.second->getInputPortList().cbegin(),
+//                        child.second->getInputPortList().cend(),
+//                        std::back_inserter(nodes.back().input_slots),
+//                        [](const auto& elem) { return elem.first; });
 
-        nodes.back().name = child.second->getName();
-        nodes.back().position = ImVec2(child.second->x(), child.second->y());
+//         std::transform(child.second->getOutputPortList().cbegin(),
+//                        child.second->getOutputPortList().cend(),
+//                        std::back_inserter(nodes.back().output_slots),
+//                        [](const auto& elem) { return elem.first; });
 
-        std::transform(child.second->getInputPortList().cbegin(),
-                       child.second->getInputPortList().cend(),
-                       std::back_inserter(nodes.back().input_slots),
-                       [](const auto& elem) { return elem.first; });
+//         if (child.second->isAtomic()) {
+//             const auto* atom =
+//               static_cast<const vle::vpz::AtomicModel*>(child.second);
+//             nodes.back().conditions = atom->conditions();
+//             nodes.back().dynamics = atom->dynamics();
+//             nodes.back().observables = atom->observables();
+//             nodes.back().type = Glnode::model_type::atomic;
+//         } else {
+//             nodes.back().type = Glnode::model_type::coupled;
+//         }
+//     }
 
-        std::transform(child.second->getOutputPortList().cbegin(),
-                       child.second->getOutputPortList().cend(),
-                       std::back_inserter(nodes.back().output_slots),
-                       [](const auto& elem) { return elem.first; });
+//     cache.sort();
 
-        if (child.second->isAtomic()) {
-            nodes.back().conditions =
-              static_cast<vle::vpz::AtomicModel* const>(child.second)
-                ->conditions();
-            nodes.back().dynamiacs =
-              static_cast<vle::vpz::AtomicModel* const>(child.second)
-                ->dynamics();
-            nodes.back().observables =
-              static_cast<vle::vpz::AtomicModel* const>(child.second)
-                ->observables();
-            nodes.back().type = Glnode::model_type::atomic;
-        } else {
-            nodes.back().type = Glnode::model_type::coupled;
-        }
-    }
+//     for (const auto& it : mdl->getInternalOutputPortList()) {
+//         int output_slot = get_slot_index(node.output_slots, it.first);
 
-    cache.sort();
+//         const auto& lst = it.second;
+//         for (const auto& jt : lst) {
+//             int input_id = cache.get(jt.first->getName());
+//             int input_slot =
+//               get_slot_index(nodes[input_id].output_slots, jt.second);
 
-    // Convert internal connections
+//             output_links.emplace_back(input_id, input_slot, output_slot);
+//         }
+//     }
 
-    for (const auto& it : mdl->getInternalOutputList()) {
-        int output_slot = get_slot_index(node.output_slots);
+//     for (const auto& it : mdl->getInternalInputPortList()) {
+//         int input_slot = get_slot_index(node.input_slots, it.first);
+//         const auto& lst = it.second;
+//         for (const auto& jt : lst) {
+//             int output_id = cache.get(jt.first->getName());
+//             int output_slot =
+//               get_slot_index(nodes[output_id].input_slots, jt.second);
 
-        const std::string& port(it.first);
-        const ModelPortList& lst(it.second);
-        for (const auto& jt : lst) {
-            int input_id = cache.get(jf.first->getName());
-            int input_slot =
-              get_slot_index(nodes[input_id].output_slots, jt.second);
+//             input_links.emplace_back(input_slot, output_id, output_slot);
+//         }
+//     }
 
-            ouput_links.emplace_back(input_id, input_slot, output_slot);
-        }
-    }
+//     for (const auto& it : mdl->getModelList()) {
+//         const auto& cnts(it.second->getOutputPortList());
+//         for (const auto& cnt : cnts) {
+//             for (auto kt = cnt.second.begin(); kt != cnt.second.end(); ++kt)
+//             {
+//                 if (kt->first != mdl) {
+//                     int input_id = cache.get(it.second->getName());
+//                     int input_slot =
+//                       get_slot_index(nodes[input_id].input_slots,
+//                       cnt.first);
+//                     int output_id = cache.get(kt->first->getName());
+//                     int output_slot = get_slot_index(
+//                       nodes[output_id].output_slots, kt->second);
 
-    for (const auto& it : mdl->getInternalInputList()) {
-        int input_slot = get_slot_index(node.input_slots);
+//                     links.emplace_back(
+//                       input_id, input_slot, output_id, output_slot);
+//                 }
+//             }
+//         }
+//     }
 
-        const std::string& port(it.first);
-        const ModelPortList& lst(it.second);
-        for (const auto& jt : lst) {
-            int output_id = cache.get(jt.first->getName());
-            int output_slot =
-              get_slot_index(nodes[output_id].input_slot, jt.second);
-
-            input_links.emplace_back(input_slot, output_id, output_slot);
-        }
-    }
-
-    for (const auto& it : mdl->getModelList()) {
-        const ConnectionList& cnts(it.second->getOutputPortList());
-        for (const auto& cnt : cnts) {
-            for (auto kt = cnt.second.begin(); kt != cnt.second.end(); ++kt) {
-                if (kt->first != this) {
-                    int input_id = cache.get(it.second->getName());
-                    int input_slot =
-                      get_slot_index(nodes[input_id].input_slots, cnt.first);
-                    int output_id = cache.get(kt->first->getName());
-                    int output_slot =
-                      get_slot_index(nodes[output_id].output_slots, kt->second);
-
-                    links.emplace_back(
-                      input_id, input_slot, output_id, output_slot);
-                }
-            }
-        }
-    }
-
-    return Glgraph(node, nodes, links, input_links, output_links);
-}
+//     return Glgraph(node, nodes, links, input_links, output_links);
+// }
 
 static void
 show_vpz(Glvle& /*gl*/, const std::string& /*file*/, Glvpz& vpz)
 {
-    ImGui::BeginChild("node_list", ImVec2(100, 0));
-    ImGui::Text("Hierarchy");
-    ImGui::Separator();
+    // enum class show_vpz_type
+    // {
+    //     show_node,
+    //     show_conditions,
+    //     show_dynamics,
+    //     show_view
+    // };
 
-    ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_DefaultOpen;
-    const auto* root = vpz.vpz->project().model().node();
+    ImGui::BeginChild("node_list", ImVec2(250, 0), true);
 
-    if (ImGui::TreeNodeEx(root->getName().c_str(), node_flags)) {
-        for (const auto& child :
-             static_cast<const vle::vpz::CoupledModel*>(root)->getModelList())
-            if (child.second->isCoupled())
-                show_vpz(
-                  static_cast<const vle::vpz::CoupledModel*>(child.second));
+    if (ImGui::TreeNode("Hierarchy")) {
+        ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_DefaultOpen;
+        const auto* root = vpz.vpz->project().model().node();
+
+        if (ImGui::TreeNodeEx(root->getName().c_str(), node_flags)) {
+            for (const auto& child :
+                 static_cast<const vle::vpz::CoupledModel*>(root)
+                   ->getModelList())
+                if (child.second->isCoupled())
+                    show_vpz(static_cast<const vle::vpz::CoupledModel*>(
+                      child.second));
+
+            ImGui::TreePop();
+        }
 
         ImGui::TreePop();
     }
 
+    if (ImGui::TreeNode("Conditions")) {
+        static auto selected = -1;
+        const auto& map =
+          vpz.vpz->project().experiment().conditions().conditionlist();
+        auto i = 0;
+
+        for (auto& elem : map)
+            if (ImGui::Selectable(elem.second.name().c_str(), selected == i))
+                selected = i;
+
+        ImGui::TreePop();
+    }
+
+    if (ImGui::TreeNode("Dynamics")) {
+        ImGui::Columns(3, "dynamics-columns");
+        ImGui::Separator();
+        ImGui::Text("ID");
+        ImGui::NextColumn();
+        ImGui::Text("Library");
+        ImGui::NextColumn();
+        ImGui::Text("Package");
+        ImGui::NextColumn();
+        ImGui::Separator();
+
+        static auto selected = -1;
+        const auto& map = vpz.vpz->project().dynamics().dynamiclist();
+        auto i = 0;
+
+        for (auto& elem : map) {
+            if (ImGui::Selectable(elem.second.name().c_str(),
+                                  selected == i,
+                                  ImGuiSelectableFlags_SpanAllColumns)) {
+                selected = i;
+            }
+
+            ImGui::NextColumn();
+            ImGui::Text(elem.second.library().c_str());
+            ImGui::NextColumn();
+            ImGui::Text(elem.second.package().c_str());
+            ImGui::NextColumn();
+        }
+
+        ImGui::Columns(1);
+        ImGui::TreePop();
+    }
+
+    if (ImGui::TreeNode("Views")) {
+        ImGui::Columns(2, "views-columns");
+        ImGui::Separator();
+        ImGui::Text("ID");
+        ImGui::NextColumn();
+        ImGui::Text("Enable");
+        ImGui::NextColumn();
+        ImGui::Separator();
+
+        auto& map = vpz.vpz->project().experiment().views().viewlist();
+        for (auto& elem : map) {
+            ImGui::Text(elem.first.c_str());
+            ImGui::NextColumn();
+            bool active = elem.second.is_enable();
+            ImGui::Checkbox("##value", &active);
+
+            if (active)
+                elem.second.enable();
+            else
+                elem.second.disable();
+
+            ImGui::NextColumn();
+        }
+
+        ImGui::Columns(1);
+        ImGui::TreePop();
+    }
+
     ImGui::EndChild();
+
     ImGui::SameLine();
     ImGui::BeginGroup();
 
@@ -416,7 +497,6 @@ show_vpz(Glvle& /*gl*/, const std::string& /*file*/, Glvpz& vpz)
     ImGui::Checkbox("Show grid", &show_grid);
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1, 1));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-    ImGui::PushStyleColor(ImGuiCol_ChildWindowBg, IM_COL32(60, 60, 70, 255));
     ImGui::BeginChild("scrolling_region",
                       ImVec2(0, 0),
                       true,
@@ -445,7 +525,6 @@ show_vpz(Glvle& /*gl*/, const std::string& /*file*/, Glvpz& vpz)
 
     ImGui::PopItemWidth();
     ImGui::EndChild();
-    ImGui::PopStyleColor();
     ImGui::PopStyleVar(2);
     ImGui::EndGroup();
 }

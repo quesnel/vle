@@ -57,8 +57,6 @@ struct Gltxt
 struct Glvpz
 {
     Glvpz() = default;
-    // Glvpz(Glvpz&& other) = default;
-    // Glvpz(const Glvpz& other) = default;
 
     enum class status
     {
