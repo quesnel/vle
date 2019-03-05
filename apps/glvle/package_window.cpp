@@ -66,6 +66,8 @@ struct directory
     {}
 };
 
+static int id_generator = 0;
+
 struct node_visitor : public boost::static_visitor<void>
 {
     Glvle& gv;
@@ -88,10 +90,13 @@ struct node_visitor : public boost::static_visitor<void>
 
         ImGui::TreeNodeEx(f.path.filename().c_str(), node_flags);
         if (ImGui::IsItemClicked()) {
-            if (f.path.extension() == ".vpz")
-                gv.vpz_files[f.path.string()] = vle::glvle::Glvpz();
-            else
+            if (f.path.extension() == ".vpz") {
+                auto& vpz = gv.vpz_files[f.path.string()];
+                vpz.id = std::string("vpz-") + std::to_string(id_generator++);
+                vpz.open(f.path.string());
+            } else {
                 gv.txt_files[f.path.string()] = vle::glvle::Gltxt();
+            }
         }
     }
 

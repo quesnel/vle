@@ -33,12 +33,6 @@
 
 #include "glvle.hpp"
 
-#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
-#include "imgui.h"
-
-#define IMGUI_DEFINE_MATH_OPERATORS
-#include "imgui_internal.h"
-
 #include <cmath>
 
 namespace vle {
@@ -74,51 +68,6 @@ show_vpz(const vle::vpz::CoupledModel* mdl)
     }
 }
 
-struct Glnode
-{
-    enum class model_type
-    {
-        atomic,
-        coupled
-    };
-
-    std::string name;
-    std::string dynamics;
-    std::string observables;
-    std::vector<std::string> conditions;
-    std::vector<std::string> input_slots;
-    std::vector<std::string> output_slots;
-    model_type type;
-
-    ImVec2 position;
-    ImVec2 size;
-
-    Glnode()
-      : type(model_type::atomic)
-    {}
-
-    void update_size() noexcept
-    {
-        size = ImVec2(size.x,
-                      size.y * static_cast<float>(std::max(
-                                 input_slots.size(), output_slots.size())));
-    }
-
-    ImVec2 get_input_slot_pos(const int slot_no) noexcept
-    {
-        return ImVec2(position.x,
-                      position.y + size.y * static_cast<float>(slot_no + 1) /
-                                     static_cast<float>(input_slots.size()));
-    }
-
-    ImVec2 get_output_slot_pos(const int slot_no) noexcept
-    {
-        return ImVec2(position.x + size.x,
-                      position.y + size.y * static_cast<float>(slot_no + 1) /
-                                     static_cast<float>(output_slots.size()));
-    }
-};
-
 int
 get_slot_index(const std::vector<std::string>& vec,
                const std::string& str) noexcept
@@ -129,139 +78,6 @@ get_slot_index(const std::vector<std::string>& vec,
 
     return static_cast<int>(std::distance(vec.cbegin(), found));
 }
-
-struct Glinputlink
-{
-    Glinputlink(int input_slot_, int output_id_, int output_slot_)
-      : input_slot(input_slot_)
-      , output_id(output_id_)
-      , output_slot(output_slot_)
-    {}
-
-    int input_slot;
-    int output_id;
-    int output_slot;
-};
-
-struct Gloutputlink
-{
-    Gloutputlink(int input_id_, int input_slot_, int output_slot_)
-      : input_id(input_id_)
-      , input_slot(input_slot_)
-      , output_slot(output_slot_)
-    {}
-
-    int input_id;
-    int input_slot;
-    int output_slot;
-};
-
-struct Gllink
-{
-    Gllink(int input_id_, int input_slot_, int output_id_, int output_slot_)
-      : input_id(input_id_)
-      , input_slot(input_slot_)
-      , output_id(output_id_)
-      , output_slot(output_slot_)
-    {}
-
-    int input_id;
-    int input_slot;
-    int output_id;
-    int output_slot;
-};
-
-struct Glgraph
-{
-    Glgraph() = default;
-
-    Glgraph(Glnode node_,
-            std::vector<Glnode> nodes_,
-            std::vector<Gllink> links_,
-            std::vector<Glinputlink> input_links_,
-            std::vector<Gloutputlink> output_links_)
-      : node(node_)
-      , nodes(nodes_)
-      , links(links_)
-      , input_links(input_links_)
-      , output_links(output_links_)
-    {}
-
-    Glnode node;
-    std::vector<Glnode> nodes;
-    std::vector<Gllink> links;
-    std::vector<Glinputlink> input_links;
-    std::vector<Gloutputlink> output_links;
-};
-
-class Glcache
-{
-public:
-    struct element
-    {
-        element(const std::string& name_, const int position_)
-          : name(name_)
-          , position(position_)
-        {}
-
-        std::string name;
-        int position;
-    };
-
-private:
-    std::vector<element> elements;
-
-public:
-    Glcache()
-    {
-        elements.reserve(size_t{ 32 });
-    }
-
-    template<class... Args>
-    void emplace(Args&&... args)
-    {
-        elements.emplace_back(std::forward<Args>(args)...);
-    }
-
-    size_t size() const noexcept
-    {
-        return elements.size();
-    }
-
-    void sort() noexcept
-    {
-        std::sort(elements.begin(),
-                  elements.end(),
-                  [](const auto& lhs, const auto& rhs) {
-                      return lhs.name < rhs.name;
-                  });
-    }
-
-    int get(const std::string& str) const noexcept
-    {
-        struct comparator
-        {
-            bool operator()(const element& lhs, const std::string& str) const
-              noexcept
-            {
-                return lhs.name < str;
-            }
-
-            bool operator()(const std::string& str, const element& rhs) const
-              noexcept
-            {
-                return str < rhs.name;
-            }
-        };
-
-        auto found = std::equal_range(
-          elements.cbegin(), elements.cend(), str, comparator{});
-
-        assert(std::distance(found.first, found.second) == 1);
-
-        return found.first->position;
-    }
-};
 
 // static Glgraph
 // convert_vpz(const vle::vpz::CoupledModel* mdl)
@@ -373,30 +189,72 @@ public:
 //     return Glgraph(node, nodes, links, input_links, output_links);
 // }
 
-static void
-show_vpz(Glvle& /*gl*/, const std::string& /*file*/, Glvpz& vpz)
+void
+gl_error(const char* description)
 {
-    // enum class show_vpz_type
-    // {
-    //     show_node,
-    //     show_conditions,
-    //     show_dynamics,
-    //     show_view
-    // };
+    // bool dummy_open = true;
+    // if (ImGui::BeginPopupModal("Alert", &dummy_open)) {
+    //     ImGui::Text(description);
+    //     if (ImGui::Button("Close"))
+    //         ImGui::CloseCurrentPopup();
+    //     ImGui::EndPopup();
+    // }
 
-    ImGui::BeginChild("node_list", ImVec2(250, 0), true);
+    // if (ImGui::Button("Close"))
+    //     ImGui::CloseCurrentPopup();
+    // ImGui::EndPopup();
+}
+
+bool
+Glvpz::show()
+{
+    bool ret = true;
+
+    ImGui::SetNextWindowSize(ImVec2(600, 600), true);
+    if (!ImGui::Begin(id.c_str(), &ret)) {
+        ImGui::End();
+        return ret;
+    }
+
+    switch (st) {
+    case vle::glvle::Glvpz::status::uninitialized:
+        ImGui::Text("uninitialized.");
+        ImGui::End();
+        return true;
+    case vle::glvle::Glvpz::status::loading:
+        ImGui::Text("loading.");
+        ImGui::End();
+        return true;
+    case vle::glvle::Glvpz::status::read_error:
+        printf("Error reading file\n");
+        ImGui::End();
+        return false;
+    case vle::glvle::Glvpz::status::success:
+        show_left();
+        show_center();
+        break;
+    }
+
+    ImGui::End();
+    return ret;
+}
+
+void
+Glvpz::show_left()
+{
+    ImGui::BeginChild(file.c_str(), ImVec2(250, 0), true);
 
     if (ImGui::TreeNode("Hierarchy")) {
         ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_DefaultOpen;
-        const auto* root = vpz.vpz->project().model().node();
+        const auto* root = vpz->project().model().node();
 
         if (ImGui::TreeNodeEx(root->getName().c_str(), node_flags)) {
             for (const auto& child :
                  static_cast<const vle::vpz::CoupledModel*>(root)
                    ->getModelList())
                 if (child.second->isCoupled())
-                    show_vpz(static_cast<const vle::vpz::CoupledModel*>(
-                      child.second));
+                    show_vpz(
+                      static_cast<const vle::vpz::CoupledModel*>(child.second));
 
             ImGui::TreePop();
         }
@@ -407,7 +265,7 @@ show_vpz(Glvle& /*gl*/, const std::string& /*file*/, Glvpz& vpz)
     if (ImGui::TreeNode("Conditions")) {
         static auto selected = -1;
         const auto& map =
-          vpz.vpz->project().experiment().conditions().conditionlist();
+          vpz->project().experiment().conditions().conditionlist();
         auto i = 0;
 
         for (auto& elem : map)
@@ -429,7 +287,7 @@ show_vpz(Glvle& /*gl*/, const std::string& /*file*/, Glvpz& vpz)
         ImGui::Separator();
 
         static auto selected = -1;
-        const auto& map = vpz.vpz->project().dynamics().dynamiclist();
+        const auto& map = vpz->project().dynamics().dynamiclist();
         auto i = 0;
 
         for (auto& elem : map) {
@@ -459,7 +317,7 @@ show_vpz(Glvle& /*gl*/, const std::string& /*file*/, Glvpz& vpz)
         ImGui::NextColumn();
         ImGui::Separator();
 
-        auto& map = vpz.vpz->project().experiment().views().viewlist();
+        auto& map = vpz->project().experiment().views().viewlist();
         for (auto& elem : map) {
             ImGui::Text(elem.first.c_str());
             ImGui::NextColumn();
@@ -479,7 +337,11 @@ show_vpz(Glvle& /*gl*/, const std::string& /*file*/, Glvpz& vpz)
     }
 
     ImGui::EndChild();
+}
 
+void
+Glvpz::show_center()
+{
     ImGui::SameLine();
     ImGui::BeginGroup();
 
@@ -530,49 +392,19 @@ show_vpz(Glvle& /*gl*/, const std::string& /*file*/, Glvpz& vpz)
 }
 
 bool
-vpz_window(Glvle& gl, const std::string& file, Glvpz& vpz)
+Glvpz::open(const std::string& file_)
 {
-    bool ret = true;
-
-    ImGui::SetNextWindowSize(ImVec2(600, 600), true);
-    if (!ImGui::Begin(file.c_str(), &ret)) {
-        ImGui::End();
-        return ret;
+    st == vle::glvle::Glvpz::status::loading;
+    try {
+        vpz = std::make_shared<vle::vpz::Vpz>(file_);
+        vpz->parseFile(file_);
+        st = vle::glvle::Glvpz::status::success;
+        file = file_;
+        return true;
+    } catch (const std::exception& e) {
+        st = vle::glvle::Glvpz::status::read_error;
+        return false;
     }
-
-    if (vpz.st == vle::glvle::Glvpz::status::uninitialized) {
-        try {
-            vpz.vpz = std::make_shared<vle::vpz::Vpz>(file);
-            vpz.vpz->parseFile(file);
-            vpz.st = vle::glvle::Glvpz::status::success;
-        } catch (const std::exception& e) {
-            vpz.st = vle::glvle::Glvpz::status::read_error;
-        }
-    }
-
-    switch (vpz.st) {
-    case vle::glvle::Glvpz::status::success:
-        show_vpz(gl, file, vpz);
-        break;
-    case vle::glvle::Glvpz::status::uninitialized:
-        break;
-    case vle::glvle::Glvpz::status::read_error: {
-        bool dummy_open = true;
-        if (ImGui::BeginPopupModal("Alert", &dummy_open)) {
-            ImGui::Text("Error when reading vpz file");
-            if (ImGui::Button("Close"))
-                ImGui::CloseCurrentPopup();
-            ImGui::EndPopup();
-        }
-
-        if (ImGui::Button("Close"))
-            ImGui::CloseCurrentPopup();
-        ImGui::EndPopup();
-    } break;
-    }
-
-    ImGui::End();
-    return ret;
 }
 
 // Creating a node graph editor for ImGui

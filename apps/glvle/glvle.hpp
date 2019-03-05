@@ -27,6 +27,7 @@
 #ifndef ORG_VLEPROJECT_GLVLE_HPP
 #define ORG_VLEPROJECT_GLVLE_HPP
 
+#include <algorithm>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -35,6 +36,12 @@
 #include <vle/utils/Package.hpp>
 #include <vle/vpz/CoupledModel.hpp>
 #include <vle/vpz/Vpz.hpp>
+
+#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
+#include "imgui.h"
+
+#define IMGUI_DEFINE_MATH_OPERATORS
+#include "imgui_internal.h"
 
 namespace vle {
 namespace glvle {
@@ -54,20 +61,215 @@ struct Gltxt
     status st = status::uninitialized;
 };
 
+struct Glnode
+{
+    enum class model_type
+    {
+        atomic,
+        coupled
+    };
+
+    std::string name;
+    std::string dynamics;
+    std::string observables;
+    std::vector<std::string> conditions;
+    std::vector<std::string> input_slots;
+    std::vector<std::string> output_slots;
+    model_type type;
+
+    ImVec2 position;
+    ImVec2 size;
+
+    Glnode()
+      : type(model_type::atomic)
+    {}
+
+    void update_size() noexcept
+    {
+        size = ImVec2(size.x,
+                      size.y * static_cast<float>(std::max(
+                                 input_slots.size(), output_slots.size())));
+    }
+
+    ImVec2 get_input_slot_pos(const int slot_no) noexcept
+    {
+        return ImVec2(position.x,
+                      position.y + size.y * static_cast<float>(slot_no + 1) /
+                                     static_cast<float>(input_slots.size()));
+    }
+
+    ImVec2 get_output_slot_pos(const int slot_no) noexcept
+    {
+        return ImVec2(position.x + size.x,
+                      position.y + size.y * static_cast<float>(slot_no + 1) /
+                                     static_cast<float>(output_slots.size()));
+    }
+};
+
+struct Glinputlink
+{
+    Glinputlink(int input_slot_, int output_id_, int output_slot_)
+      : input_slot(input_slot_)
+      , output_id(output_id_)
+      , output_slot(output_slot_)
+    {}
+
+    int input_slot;
+    int output_id;
+    int output_slot;
+};
+
+struct Gloutputlink
+{
+    Gloutputlink(int input_id_, int input_slot_, int output_slot_)
+      : input_id(input_id_)
+      , input_slot(input_slot_)
+      , output_slot(output_slot_)
+    {}
+
+    int input_id;
+    int input_slot;
+    int output_slot;
+};
+
+struct Gllink
+{
+    Gllink(int input_id_, int input_slot_, int output_id_, int output_slot_)
+      : input_id(input_id_)
+      , input_slot(input_slot_)
+      , output_id(output_id_)
+      , output_slot(output_slot_)
+    {}
+
+    int input_id;
+    int input_slot;
+    int output_id;
+    int output_slot;
+};
+
+struct Glgraph
+{
+    Glgraph() = default;
+
+    Glgraph(Glnode node_,
+            std::vector<Glnode> nodes_,
+            std::vector<Gllink> links_,
+            std::vector<Glinputlink> input_links_,
+            std::vector<Gloutputlink> output_links_)
+      : node(node_)
+      , nodes(nodes_)
+      , links(links_)
+      , input_links(input_links_)
+      , output_links(output_links_)
+    {}
+
+    Glnode node;
+    std::vector<Glnode> nodes;
+    std::vector<Gllink> links;
+    std::vector<Glinputlink> input_links;
+    std::vector<Gloutputlink> output_links;
+};
+
+class Glcache
+{
+public:
+    struct element
+    {
+        element(const std::string& name_, const int position_)
+          : name(name_)
+          , position(position_)
+        {}
+
+        std::string name;
+        int position;
+    };
+
+private:
+    std::vector<element> elements;
+
+public:
+    Glcache()
+    {
+        elements.reserve(size_t{ 32 });
+    }
+
+    template<class... Args>
+    void emplace(Args&&... args)
+    {
+        elements.emplace_back(std::forward<Args>(args)...);
+    }
+
+    size_t size() const noexcept
+    {
+        return elements.size();
+    }
+
+    void sort() noexcept
+    {
+        std::sort(
+          elements.begin(),
+          elements.end(),
+          [](const auto& lhs, const auto& rhs) { return lhs.name < rhs.name; });
+    }
+
+    int get(const std::string& str) const noexcept
+    {
+        struct comparator
+        {
+            bool operator()(const element& lhs, const std::string& str) const
+              noexcept
+            {
+                return lhs.name < str;
+            }
+
+            bool operator()(const std::string& str, const element& rhs) const
+              noexcept
+            {
+                return str < rhs.name;
+            }
+        };
+
+        auto found = std::equal_range(
+          elements.cbegin(), elements.cend(), str, comparator{});
+
+        assert(std::distance(found.first, found.second) == 1);
+
+        return found.first->position;
+    }
+};
+
 struct Glvpz
 {
     Glvpz() = default;
+
+    bool open(const std::string& file);
+
+    bool show();
+    void show_left();
+    void show_center();
 
     enum class status
     {
         success,
         uninitialized,
+        loading,
         read_error
     };
 
+    enum class show_vpz_type
+    {
+        none,
+        node,
+        conditions,
+        dynamics,
+        view
+    };
+
+    std::string id;
+    std::string file;
     std::shared_ptr<vle::vpz::Vpz> vpz;
-    vle::vpz::CoupledModel* coupled = nullptr;
     status st = status::uninitialized;
+    show_vpz_type show_type = show_vpz_type::none;
 };
 
 struct Glvle
@@ -152,9 +354,6 @@ show_main_window(Glvle& gv);
 
 bool
 text_window(const std::string& file, Gltxt& txt);
-
-bool
-vpz_window(Glvle& gl, const std::string& file, Glvpz& vpz);
 
 } // namespace glvle
 } // namespace vle
