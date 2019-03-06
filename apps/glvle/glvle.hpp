@@ -28,6 +28,7 @@
 #define ORG_VLEPROJECT_GLVLE_HPP
 
 #include <algorithm>
+#include <future>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -52,12 +53,20 @@ struct Gltxt
     {
         success,
         uninitialized,
+        reading,
+        internal_error,
         access_file_error,
         open_file_error,
         big_file_error,
     };
 
+    Gltxt(const std::string& file);
+
+    bool show();
+
+    std::string file;
     std::string content;
+    std::future<std::tuple<std::string, status>> future_content;
     status st = status::uninitialized;
 };
 

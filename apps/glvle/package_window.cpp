@@ -95,7 +95,7 @@ struct node_visitor : public boost::static_visitor<void>
                 vpz.id = std::string("vpz-") + std::to_string(id_generator++);
                 vpz.open(f.path.string());
             } else {
-                gv.txt_files[f.path.string()] = vle::glvle::Gltxt();
+                gv.txt_files.emplace(f.path.string(), vle::glvle::Gltxt(f.path.string()));
             }
         }
     }

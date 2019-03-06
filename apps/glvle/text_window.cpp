@@ -24,8 +24,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <chrono>
 #include <fstream>
 #include <sstream>
+#include <thread>
 
 #include "glvle.hpp"
 
@@ -34,8 +36,36 @@
 namespace vle {
 namespace glvle {
 
+Gltxt::Gltxt(const std::string& file_)
+    : file(file_)
+    , st(Gltxt::status::reading)
+{
+
+    try {
+        future_content = std::async([](const std::string& file)
+                {
+                    vle::utils::Path f(file);
+
+                    if (!f.exists())
+                        return std::make_tuple(std::string(), status::access_file_error);
+
+                    if (f.file_size() > 1024 * 1024)
+                        return std::make_tuple(std::string(), status::big_file_error);
+                    std::ifstream t(file);
+                    if (!t.is_open())
+                        return std::make_tuple(std::string(), status::open_file_error);
+
+                    std::stringstream buffer;
+                    buffer << t.rdbuf();
+                    return std::make_tuple(buffer.str(), status::success);
+                }, file);
+    } catch (const std::exception& /*e*/) {
+        st = Gltxt::status::internal_error;
+    }
+}
+
 bool
-text_window(const std::string& file, Gltxt& txt)
+Gltxt::show()
 {
     bool ret = true;
 
@@ -45,47 +75,39 @@ text_window(const std::string& file, Gltxt& txt)
         return ret;
     }
 
-    if (txt.st == Gltxt::status::uninitialized) {
-        vle::utils::Path f(file);
+    constexpr ImGuiInputTextFlags flags =
+                ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_ReadOnly;
 
-        if (!f.exists()) {
-            txt.st = Gltxt::status::access_file_error;
-        } else {
-            if (f.file_size() <= 1024 * 1024) {
-                std::ifstream t(file);
-                if (!t.is_open()) {
-                    txt.st = Gltxt::status::open_file_error;
-                } else {
-                    std::stringstream buffer;
-                    buffer << t.rdbuf();
-                    txt.content = buffer.str();
+    switch (st) {
+        case status::success:
 
-                    txt.st = Gltxt::status::success;
-                }
-            } else {
-                txt.st = Gltxt::status::big_file_error;
+            ImGui::InputTextMultiline("##source",
+                    &content[0],
+                    content.size(),
+                    ImGui::GetContentRegionAvail(),
+                    flags);
+            break;
+        case status::uninitialized:
+            break;
+        case status::reading:
+            if (future_content.valid()) {
+                auto s = future_content.wait_for(std::chrono::seconds(0));
+                if (s == std::future_status::ready)
+                    std::tie(content, st) = future_content.get();
             }
-        }
-    }
-
-    if (txt.st == Gltxt::status::success) {
-        ImGuiInputTextFlags flags =
-            ImGuiInputTextFlags_AllowTabInput | ImGuiInputTextFlags_ReadOnly;
-
-        ImGui::InputTextMultiline("##source",
-                                  &txt.content[0],
-                                  txt.content.size(),
-                                  ImGui::GetContentRegionAvail(),
-                                  flags);
-    } else {
-        if (txt.st == Gltxt::status::access_file_error)
-            ImGui::Text("Fail to access file");
-        else if (txt.st == Gltxt::status::open_file_error)
-            ImGui::Text("Fail to open file");
-        else if (txt.st == Gltxt::status::big_file_error)
-            ImGui::Text("File too big for glvle");
-        else
+            break;
+        case status::internal_error:
             ImGui::Text("Internal error");
+            break;
+        case status::access_file_error:
+            ImGui::Text("Fail to access file");
+            break;
+        case status::open_file_error:
+            ImGui::Text("Fail to open file");
+            break;
+        case status::big_file_error:
+            ImGui::Text("File too big for glvle");
+            break;
     }
 
     ImGui::End();

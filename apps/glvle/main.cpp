@@ -198,7 +198,7 @@ main(int, char**)
             auto it = gv.txt_files.begin();
 
             while (it != gv.txt_files.end()) {
-                if (!vle::glvle::text_window(it->first, it->second))
+                if (!it->second.show())
                     it = gv.txt_files.erase(it);
                 else
                     ++it;
