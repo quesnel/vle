@@ -188,11 +188,8 @@ main(int, char**)
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        if (gv.show_main_menubar)
-            vle::glvle::show_app_menubar(gv);
-
         if (gv.show_package_window)
-            vle::glvle::package_window(gv);
+            gv.show_package_window = gv.package.show(gv);
 
         {
             auto it = gv.txt_files.begin();

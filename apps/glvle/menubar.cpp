@@ -49,12 +49,8 @@ show_app_menubar(Glvle& gv)
                 open_box = true;
 
             ImGui::Separator();
-            if (ImGui::MenuItem("Close", nullptr, gv.have_package)) {
-                gv.show_package_window = false;
-                gv.package.clear();
-                gv.working_dir.clear();
-                gv.have_package = false;
-            }
+            if (ImGui::MenuItem("Close", nullptr, gv.have_package))
+                gv.clear();
 
             ImGui::Separator();
             if (ImGui::MenuItem("Quit", "Ctrl+Q", false, false)) {
@@ -63,7 +59,6 @@ show_app_menubar(Glvle& gv)
         }
 
         if (ImGui::BeginMenu("View")) {
-            ImGui::MenuItem("Main menu bar", nullptr, gv.show_main_menubar);
             ImGui::MenuItem("Package window",
                             nullptr,
                             &gv.show_package_window,
@@ -87,15 +82,7 @@ show_app_menubar(Glvle& gv)
                                     dir_name)) {
         if (!path_name.empty() && !dir_name.empty()) {
             try {
-                vle::utils::Path::current_path(path_name);
-                gv.pkg =
-                  std::make_shared<vle::utils::Package>(gv.ctx, dir_name);
-                gv.pkg->create();
-
-                gv.show_package_window = true;
-                gv.package = dir_name;
-                gv.working_dir = path_name;
-                gv.have_package = true;
+                gv.open(path_name, dir_name, true);
             } catch (const std::exception& e) {
                 printf("%s.\n", e.what());
             }
@@ -109,15 +96,7 @@ show_app_menubar(Glvle& gv)
                                 dir_name)) {
         if (!dir_name.empty()) {
             try {
-                vle::utils::Path p(path_name);
-                vle::utils::Path::current_path(p);
-                gv.pkg =
-                  std::make_shared<vle::utils::Package>(gv.ctx, dir_name);
-
-                gv.show_package_window = true;
-                gv.package = dir_name;
-                gv.working_dir = path_name;
-                gv.have_package = true;
+                gv.open(path_name, dir_name, false);
             } catch (const std::exception& e) {
                 printf("%s.\n", e.what());
             }

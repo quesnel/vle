@@ -28,177 +28,137 @@
 
 #include <vle/utils/Filesystem.hpp>
 
-#include <boost/variant.hpp>
+#include <stack>
 
 #include <cassert>
 #include <cstdio>
 
-#include "imgui.h"
-
 namespace vle {
 namespace glvle {
 
-struct file;
-struct directory;
-
-using node = boost::variant<file, directory>;
-
-struct file
+template<typename T>
+inline void
+sort_vector(T& vec) noexcept
 {
-    vle::utils::Path path;
-
-    file() = default;
-
-    file(vle::utils::Path path_)
-      : path(std::move(path_))
-    {}
-};
-
-struct directory
-{
-    vle::utils::Path path;
-    std::vector<node> children;
-
-    directory() = default;
-
-    directory(vle::utils::Path path_)
-      : path(std::move(path_))
-    {}
-};
-
-static int id_generator = 0;
-
-struct node_visitor : public boost::static_visitor<void>
-{
-    Glvle& gv;
-    // const vle::utils::Path& current;
-
-    // node_visitor(Glvle& gv_, const vle::utils::Path& current_)
-    //   : gv(gv_)
-    //   , current(current_)
-    // {}
-    node_visitor(Glvle& gv_)
-      : gv(gv_)
-    {}
-
-    void operator()(const file& f) const
-    {
-        ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_OpenOnArrow |
-                                        ImGuiTreeNodeFlags_OpenOnDoubleClick |
-                                        ImGuiTreeNodeFlags_Leaf |
-                                        ImGuiTreeNodeFlags_NoTreePushOnOpen;
-
-        ImGui::TreeNodeEx(f.path.filename().c_str(), node_flags);
-        if (ImGui::IsItemClicked()) {
-            if (f.path.extension() == ".vpz") {
-                auto& vpz = gv.vpz_files[f.path.string()];
-                vpz.id = std::string("vpz-") + std::to_string(id_generator++);
-                vpz.open(f.path.string());
-            } else {
-                gv.txt_files.emplace(f.path.string(), vle::glvle::Gltxt(f.path.string()));
-            }
-        }
-    }
-
-    void operator()(const directory& dir) const
-    {
-        if (ImGui::TreeNode(dir.path.filename().c_str())) {
-            for (const auto& n : dir.children)
-                boost::apply_visitor(node_visitor(gv), n);
-            ImGui::TreePop();
-        }
-    }
-};
-
-static bool need_refresh = false;
-static directory hierarchy;
-static std::string local_package;
+    std::sort(vec.begin(), vec.end(), [](const auto& lhs, const auto& rhs) {
+        return lhs.path.string() < rhs.path.string();
+    });
+}
 
 void
-refresh(directory& c)
+Glpackage::directory::refresh()
 {
-    for (vle::utils::DirectoryIterator it{ c.path }, et{}; it != et; ++it) {
+    for (vle::utils::DirectoryIterator it{ path }, et{}; it != et; ++it) {
         if (it->is_file()) {
-            c.children.emplace_back(file(*it));
+            file_child.emplace_back(*it);
         } else if (it->is_directory()) {
-            c.children.emplace_back(directory(*it));
-            refresh(boost::get<directory>(c.children.back()));
+            dir_child.emplace_back(*it);
+            dir_child.back().refresh();
         }
     }
 
-    std::sort(
-      c.children.begin(),
-      c.children.end(),
-      [](const auto& lhs, const auto& rhs) {
-          const auto* file_lhs = boost::get<file>(&lhs);
-          const auto* file_rhs = boost::get<file>(&rhs);
-          const auto* dir_lhs = boost::get<directory>(&lhs);
-          const auto* dir_rhs = boost::get<directory>(&rhs);
-          if (dir_lhs) {
-              if (dir_rhs) {
-                  return dir_lhs->path.filename() < dir_rhs->path.filename();
-              } else {
-                  return true;
-              }
-          } else {
-              if (dir_rhs) {
-                  return false;
-              } else {
-                  return file_lhs->path.filename() < file_rhs->path.filename();
-              }
-          }
-      });
-}
-
-directory
-refresh(Glvle& gv)
-{
-    directory current(gv.pkg->getDir(vle::utils::PKG_SOURCE));
-
-    refresh(current);
-
-    return current;
+    sort_vector(file_child);
+    sort_vector(dir_child);
 }
 
 void
-package_window(Glvle& gv)
+Glpackage::open(vle::utils::ContextPtr ctx,
+                const std::string& package_,
+                bool create)
 {
-    assert(gv.show_package_window);
-    assert(gv.pkg);
+    package.reset();
+    st = status::uninitialized;
 
-    if (local_package != gv.package || hierarchy.path.empty())
-        need_refresh = true;
+    try {
+        auto pkg = std::make_shared<vle::utils::Package>(ctx, package_);
+        if (create)
+            pkg->create();
+
+        package = pkg;
+        st = status::reading;
+
+        auto path = vle::utils::Path(package->getDir(vle::utils::PKG_SOURCE));
+        if (path.exists()) {
+            current = path;
+            current.refresh();
+            st = status::success;
+        } else
+            st = status::open_package_error;
+    } catch (const std::exception& /*e*/) {
+        st = status::open_package_error;
+    }
+}
+
+bool
+Glpackage::show(Glvle& gv)
+{
+    struct element
+    {
+        element(const directory& dir_)
+          : dir(dir_)
+          , current(0)
+        {}
+
+        const directory& dir;
+        size_t current;
+    };
 
     ImGui::SetNextWindowSize(ImVec2(350, 500), true);
     if (!ImGui::Begin("Package window", nullptr)) {
         ImGui::End();
-        return;
+        return false;
     }
 
     ImGui::TextColored(
-      ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "%s", gv.package.c_str());
+      ImVec4(1.f, 1.f, 0.f, 1.f), "%s", current.path.string().c_str());
 
-    ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_DefaultOpen;
-    if (ImGui::TreeNodeEx(gv.package.c_str(), node_flags)) {
-        for (const auto& n : hierarchy.children)
-            boost::apply_visitor(node_visitor(gv), n);
-        ImGui::TreePop();
+    std::stack<element> stack;
+    stack.emplace(current);
+
+    while (!stack.empty()) {
+        element top = stack.top();
+
+        if (top.current == top.dir.dir_child.size()) {
+            for (const auto& f : top.dir.file_child) {
+                constexpr ImGuiTreeNodeFlags node_flags =
+                  ImGuiTreeNodeFlags_OpenOnArrow |
+                  ImGuiTreeNodeFlags_OpenOnDoubleClick |
+                  ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+
+                ImGui::TreeNodeEx(f.path.filename().c_str(), node_flags);
+                if (ImGui::IsItemClicked()) {
+                    if (f.path.extension() == ".vpz") {
+                        auto& vpz = gv.vpz_files[f.path.string()];
+                        vpz.id =
+                          std::string("vpz-") + std::to_string(id_generator++);
+                        vpz.open(f.path.string());
+                    } else {
+                        gv.txt_files.emplace(
+                          f.path.string(), vle::glvle::Gltxt(f.path.string()));
+                    }
+                }
+            }
+
+            ImGui::TreePop();
+            stack.pop();
+        } else {
+            top.current = top.dir.dir_child.size();
+            if (ImGui::TreeNode(top.dir.path.filename().c_str())) {
+                for (const auto& elem : top.dir.dir_child)
+                    stack.emplace(elem);
+            }
+        }
     }
 
-    if (need_refresh) {
-        local_package = gv.package;
-        hierarchy = refresh(gv);
-        need_refresh = false;
-    }
-
-    float width = ImGui::GetContentRegionAvailWidth() / 4.f -
-                  2.f * ImGui::GetStyle().FramePadding.x;
+    const float width = ImGui::GetContentRegionAvailWidth() / 4.f -
+                        2.f * ImGui::GetStyle().FramePadding.x;
 
     ImGui::Separator();
 
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
-    ImGui::Text("Binary: %s", gv.pkg->getDir().c_str());
-    ImGui::Text("Source: %s", gv.pkg->getDir(vle::utils::PKG_SOURCE).c_str());
+
+    ImGui::Text("Binary: %s", package->getDir().c_str());
+    ImGui::Text("Source: %s", package->getDir(vle::utils::PKG_SOURCE).c_str());
     ImGui::PopStyleVar();
 
     if (ImGui::Button("configure", ImVec2(width, 0))) {
@@ -214,7 +174,72 @@ package_window(Glvle& gv)
     }
 
     ImGui::End();
+
+    return true;
 }
+
+void
+Glpackage::clear() noexcept
+{
+    package.reset();
+    current.clear();
+}
+
+// void
+// package_window(Glvle& gv)
+// {
+//     assert(gv.show_package_window);
+//     assert(gv.pkg);
+
+//     if (local_package != gv.package || hierarchy.path.empty())
+//         need_refresh = true;
+
+//     ImGui::SetNextWindowSize(ImVec2(350, 500), true);
+//     if (!ImGui::Begin("Package window", nullptr)) {
+//         ImGui::End();
+//         return;
+//     }
+
+//     ImGui::TextColored(
+//       ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "%s", gv.package.c_str());
+
+//     ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_DefaultOpen;
+//     if (ImGui::TreeNodeEx(gv.package.c_str(), node_flags)) {
+//         for (const auto& n : hierarchy.children)
+//             boost::apply_visitor(node_visitor(gv), n);
+//         ImGui::TreePop();
+//     }
+
+//     if (need_refresh) {
+//         local_package = gv.package;
+//         hierarchy = refresh(gv);
+//         need_refresh = false;
+//     }
+
+//     float width = ImGui::GetContentRegionAvailWidth() / 4.f -
+//                   2.f * ImGui::GetStyle().FramePadding.x;
+
+//     ImGui::Separator();
+
+//     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+//     ImGui::Text("Binary: %s", gv.pkg->getDir().c_str());
+//     ImGui::Text("Source: %s",
+//     gv.pkg->getDir(vle::utils::PKG_SOURCE).c_str()); ImGui::PopStyleVar();
+
+//     if (ImGui::Button("configure", ImVec2(width, 0))) {
+//     }
+//     ImGui::SameLine();
+//     if (ImGui::Button("build", ImVec2(width, 0))) {
+//     }
+//     ImGui::SameLine();
+//     if (ImGui::Button("clean", ImVec2(width, 0))) {
+//     }
+//     ImGui::SameLine();
+//     if (ImGui::Button("test", ImVec2(width, 0))) {
+//     }
+
+//     ImGui::End();
+// }
 
 } // namespace glvle
 } // namespace vle

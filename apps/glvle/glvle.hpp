@@ -281,26 +281,6 @@ struct Glvpz
     show_vpz_type show_type = show_vpz_type::none;
 };
 
-struct Glvle
-{
-    Glvle()
-      : ctx(vle::utils::make_context())
-    {}
-
-    std::string working_dir;
-    std::string package;
-
-    vle::utils::ContextPtr ctx;
-    std::shared_ptr<vle::utils::Package> pkg;
-
-    std::unordered_map<std::string, Gltxt> txt_files;
-    std::unordered_map<std::string, Glvpz> vpz_files;
-
-    bool have_package = false;
-    bool show_main_menubar = true;
-    bool show_package_window = false;
-};
-
 /**
  * @brief Modal dialog box to select a directory.
  *
@@ -352,8 +332,114 @@ select_new_directory_dialog(const char* name,
                             std::string& pathname,
                             std::string& dirname);
 
-void
-package_window(Glvle& gv);
+struct Glvle;
+
+struct Glpackage
+{
+    enum class status
+    {
+        success,
+        uninitialized,
+        reading,
+        open_package_error
+    };
+
+    struct file
+    {
+        vle::utils::Path path;
+
+        file() = default;
+        file(vle::utils::Path path_)
+          : path(std::move(path_))
+        {}
+    };
+
+    struct directory
+    {
+        vle::utils::Path path;
+        std::vector<directory> dir_child;
+        std::vector<file> file_child;
+
+        directory() = default;
+        directory& operator=(const directory& dir) = default;
+        directory& operator=(directory&& dir) noexcept = default;
+        directory(const directory& dir) = default;
+        directory(directory&& dir) noexcept = default;
+
+        directory(vle::utils::Path path_)
+          : path(std::move(path_))
+        {}
+
+        void clear()
+        {
+            path.clear();
+            dir_child.clear();
+            file_child.clear();
+        }
+
+        void refresh();
+    };
+
+    std::shared_ptr<vle::utils::Package> package;
+    directory current;
+    unsigned long id_generator = 0;
+    status st = status::uninitialized;
+
+    Glpackage() = default;
+
+    void open(vle::utils::ContextPtr ctx,
+              const std::string& package_name,
+              bool create);
+    bool show(Glvle& gv);
+    void clear() noexcept;
+};
+
+struct Glvle
+{
+    Glvle()
+      : ctx(vle::utils::make_context())
+    {}
+
+    std::string working_dir;
+    std::string package_name;
+
+    vle::utils::ContextPtr ctx;
+
+    std::unordered_map<std::string, Gltxt> txt_files;
+    std::unordered_map<std::string, Glvpz> vpz_files;
+
+    Glpackage package;
+
+    void open(const std::string& path_name,
+              const std::string& dir_name,
+              bool create)
+    {
+        clear();
+
+        vle::utils::Path::current_path(path_name);
+        package.open(ctx, dir_name, create);
+
+        package_name = dir_name;
+        working_dir = path_name;
+
+        have_package = true;
+        show_package_window = true;
+    }
+
+    void clear()
+    {
+        package_name.clear();
+        txt_files.clear();
+        vpz_files.clear();
+        package.clear();
+
+        have_package = false;
+        show_package_window = false;
+    }
+
+    bool have_package = false;
+    bool show_package_window = false;
+};
 
 void
 show_app_menubar(Glvle& gv);
