@@ -188,6 +188,8 @@ main(int, char**)
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+        show_app_menubar(gv);
+
         if (gv.show_package_window)
             gv.show_package_window = gv.package.show(gv);
 

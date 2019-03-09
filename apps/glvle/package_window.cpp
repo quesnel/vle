@@ -96,11 +96,13 @@ Glpackage::show(Glvle& gv)
     {
         element(const directory& dir_)
           : dir(dir_)
-          , current(0)
+          , read(false)
+          , open(false)
         {}
 
-        const directory& dir;
-        size_t current;
+        directory dir;
+        bool read;
+        bool open;
     };
 
     ImGui::SetNextWindowSize(ImVec2(350, 500), true);
@@ -114,38 +116,51 @@ Glpackage::show(Glvle& gv)
 
     std::stack<element> stack;
     stack.emplace(current);
+    stack.top().open = true;
 
     while (!stack.empty()) {
-        element top = stack.top();
+        if (stack.top().read) {
+            element top = stack.top();
+            stack.pop();
 
-        if (top.current == top.dir.dir_child.size()) {
-            for (const auto& f : top.dir.file_child) {
-                constexpr ImGuiTreeNodeFlags node_flags =
-                  ImGuiTreeNodeFlags_OpenOnArrow |
-                  ImGuiTreeNodeFlags_OpenOnDoubleClick |
-                  ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+            if (top.open) {
+                for (const auto& f : top.dir.file_child) {
+                    constexpr ImGuiTreeNodeFlags node_flags =
+                      ImGuiTreeNodeFlags_OpenOnArrow |
+                      ImGuiTreeNodeFlags_OpenOnDoubleClick |
+                      ImGuiTreeNodeFlags_Leaf |
+                      ImGuiTreeNodeFlags_NoTreePushOnOpen;
 
-                ImGui::TreeNodeEx(f.path.filename().c_str(), node_flags);
-                if (ImGui::IsItemClicked()) {
-                    if (f.path.extension() == ".vpz") {
-                        auto& vpz = gv.vpz_files[f.path.string()];
-                        vpz.id =
-                          std::string("vpz-") + std::to_string(id_generator++);
-                        vpz.open(f.path.string());
-                    } else {
-                        gv.txt_files.emplace(
-                          f.path.string(), vle::glvle::Gltxt(f.path.string()));
+                    ImGui::TreeNodeEx(f.path.filename().c_str(), node_flags);
+                    if (ImGui::IsItemClicked()) {
+                        if (f.path.extension() == ".vpz") {
+                            auto& vpz = gv.vpz_files[f.path.string()];
+                            vpz.id = std::string("vpz-") +
+                                     std::to_string(id_generator++);
+                            vpz.open(f.path.string());
+                        } else {
+                            gv.txt_files.emplace(
+                              f.path.string(),
+                              vle::glvle::Gltxt(f.path.string()));
+                        }
                     }
                 }
-            }
 
-            ImGui::TreePop();
-            stack.pop();
+                ImGui::TreePop();
+            }
         } else {
-            top.current = top.dir.dir_child.size();
-            if (ImGui::TreeNode(top.dir.path.filename().c_str())) {
-                for (const auto& elem : top.dir.dir_child)
-                    stack.emplace(elem);
+            stack.top().read = true;
+
+            if (ImGui::TreeNodeEx(stack.top().dir.path.filename().c_str())) {
+                stack.top().open = true;
+
+                auto top = stack.top().dir;
+                std::for_each(
+                  top.dir_child.rbegin(),
+                  top.dir_child.rend(),
+                  [&stack](const auto& elem) { stack.emplace(elem); });
+            } else {
+                stack.top().open = false;
             }
         }
     }
