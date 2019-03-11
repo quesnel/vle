@@ -1,4 +1,4 @@
-set(glvle_sources main.cpp glvle.hpp menubar.cpp main_window.cpp
+set(glvle_sources main.cpp glvle.hpp menubar.cpp
     dialog.cpp package_window.cpp text_window.cpp vpz_window.cpp
   ${PROJECT_SOURCE_DIR}/external/imgui/imgui.cpp
   ${PROJECT_SOURCE_DIR}/external/imgui/imgui.h

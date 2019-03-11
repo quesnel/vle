@@ -215,10 +215,11 @@ public:
 
     void sort() noexcept
     {
-        std::sort(
-          elements.begin(),
-          elements.end(),
-          [](const auto& lhs, const auto& rhs) { return lhs.name < rhs.name; });
+        std::sort(elements.begin(),
+                  elements.end(),
+                  [](const auto& lhs, const auto& rhs) {
+                      return lhs.name < rhs.name;
+                  });
     }
 
     int get(const std::string& str) const noexcept
@@ -443,12 +444,6 @@ struct Glvle
 
 void
 show_app_menubar(Glvle& gv);
-
-void
-show_main_window(Glvle& gv);
-
-bool
-text_window(const std::string& file, Gltxt& txt);
 
 } // namespace glvle
 } // namespace vle
