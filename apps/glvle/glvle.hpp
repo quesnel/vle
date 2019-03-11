@@ -395,6 +395,22 @@ struct Glpackage
     void clear() noexcept;
 };
 
+struct Gllog
+{
+    ImGuiTextBuffer buffer;
+    ImGuiTextFilter filter;
+    ImVector<int> line_offsets;
+
+    bool auto_scroll = true;
+    bool scroll_to_bottom = false;
+
+    Gllog() = default;
+    void clear() noexcept;
+
+    void log(const char* fmt, ...) IM_FMTARGS(2);
+    void show(Glvle& gv);
+};
+
 struct Glvle
 {
     Glvle()
@@ -410,6 +426,7 @@ struct Glvle
     std::unordered_map<std::string, Glvpz> vpz_files;
 
     Glpackage package;
+    Gllog log;
 
     void open(const std::string& path_name,
               const std::string& dir_name,
@@ -440,6 +457,7 @@ struct Glvle
 
     bool have_package = false;
     bool show_package_window = false;
+    bool show_log_window = true;
 };
 
 void

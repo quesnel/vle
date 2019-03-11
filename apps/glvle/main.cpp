@@ -56,7 +56,7 @@
 // legacy_stdio_definitions.lib, which we do using this pragma. Your own
 // project should not be affected, as you are likely to link with a newer
 // binary of GLFW that is adequate for your version of Visual Studio.
-#if defined(_MSC_VER) && (_MSC_VER >= 1900) &&                                 \
+#if defined(_MSC_VER) && (_MSC_VER >= 1900) &&                                \
   !defined(IMGUI_DISABLE_WIN32_FUNCTIONS)
 #pragma comment(lib, "legacy_stdio_definitions")
 #endif
@@ -114,8 +114,9 @@ main(int, char**)
 #elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
     bool err = gladLoadGL() == 0;
 #else
-    bool err = false; // If you use IMGUI_IMPL_OPENGL_LOADER_CUSTOM, your loader
-                      // is likely to requires some form of initialization.
+    bool err =
+      false; // If you use IMGUI_IMPL_OPENGL_LOADER_CUSTOM, your loader
+             // is likely to requires some form of initialization.
 #endif
     if (err) {
         fprintf(stderr, "Failed to initialize OpenGL loader!\n");
@@ -192,6 +193,9 @@ main(int, char**)
 
         if (gv.show_package_window)
             gv.show_package_window = gv.package.show(gv);
+
+        if (gv.show_log_window)
+            gv.log.show(gv);
 
         {
             auto it = gv.txt_files.begin();
