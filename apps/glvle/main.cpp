@@ -195,7 +195,7 @@ main(int, char**)
             gv.show_package_window = gv.package.show(gv);
 
         if (gv.show_log_window)
-            gv.log.show(gv);
+            gv.log_w.show(gv);
 
         {
             auto it = gv.txt_files.begin();

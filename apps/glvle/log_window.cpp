@@ -37,15 +37,36 @@ Gllog::clear() noexcept
     line_offsets.push_back(0);
 }
 
+static const char* log_prefix[] = { "[emerg]", "[alert]",   "[crit]",
+                                    "[err]",   "[warning]", "[notice]",
+                                    "[info]",  "[debug]" };
+
 void
-Gllog::log(const char* fmt, ...)
+Gllog::log(int level, const char* fmt, ...)
 {
     auto old_size = buffer.size();
 
     va_list args;
     va_start(args, fmt);
+    buffer.append(log_prefix[level]);
     buffer.appendfv(fmt, args);
     va_end(args);
+
+    for (auto new_size = buffer.size(); old_size < new_size; ++old_size)
+        if (buffer[old_size] == '\n')
+            line_offsets.push_back(old_size + 1);
+
+    if (auto_scroll)
+        scroll_to_bottom = true;
+}
+
+void
+Gllog::log(int level, const char* fmt, va_list args)
+{
+    auto old_size = buffer.size();
+
+    buffer.append(log_prefix[level]);
+    buffer.appendfv(fmt, args);
 
     for (auto new_size = buffer.size(); old_size < new_size; ++old_size)
         if (buffer[old_size] == '\n')
@@ -59,26 +80,6 @@ void
 Gllog::show(Glvle& gv)
 {
     ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
-    ImGui::Begin("Log", &gv.show_log_window);
-
-    if (ImGui::SmallButton("[Debug] Add 5 entries")) {
-        static int counter = 0;
-        for (int n = 0; n < 5; n++) {
-            const char* categories[3] = { "info", "warn", "error" };
-            const char* words[] = { "Bumfuzzled",   "Cattywampus",
-                                    "Snickersnee",  "Abibliophobia",
-                                    "Absquatulate", "Nincompoop",
-                                    "Pauciloquent" };
-            log("[%05d] [%s] Hello, current time is %.1f, here's a "
-                "word: '%s'\n",
-                ImGui::GetFrameCount(),
-                categories[counter % IM_ARRAYSIZE(categories)],
-                ImGui::GetTime(),
-                words[counter % IM_ARRAYSIZE(words)]);
-            counter++;
-        }
-    }
-    ImGui::End();
 
     if (!ImGui::Begin("Log", &gv.show_log_window)) {
         ImGui::End();
@@ -95,10 +96,8 @@ Gllog::show(Glvle& gv)
     if (ImGui::Button("Options"))
         ImGui::OpenPopup("Options");
     ImGui::SameLine();
-
     bool need_clear = ImGui::Button("Clear");
     ImGui::SameLine();
-
     bool need_copy = ImGui::Button("Copy");
     ImGui::SameLine();
     filter.Draw("Filter", -100.0f);

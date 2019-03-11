@@ -407,15 +407,14 @@ struct Gllog
     Gllog() = default;
     void clear() noexcept;
 
-    void log(const char* fmt, ...) IM_FMTARGS(2);
+    void log(int level, const char* fmt, ...) IM_FMTARGS(3);
+    void log(int level, const char* fmt, va_list args) IM_FMTLIST(3);
     void show(Glvle& gv);
 };
 
 struct Glvle
 {
-    Glvle()
-      : ctx(vle::utils::make_context())
-    {}
+    Glvle();
 
     std::string working_dir;
     std::string package_name;
@@ -426,7 +425,7 @@ struct Glvle
     std::unordered_map<std::string, Glvpz> vpz_files;
 
     Glpackage package;
-    Gllog log;
+    Gllog log_w;
 
     void open(const std::string& path_name,
               const std::string& dir_name,

@@ -63,6 +63,8 @@ show_app_menubar(Glvle& gv)
                             nullptr,
                             &gv.show_package_window,
                             gv.have_package);
+            ImGui::MenuItem("Log window", nullptr, &gv.show_log_window, true);
+
             ImGui::EndMenu();
         }
 

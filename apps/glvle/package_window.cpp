@@ -177,15 +177,20 @@ Glpackage::show(Glvle& gv)
     ImGui::PopStyleVar();
 
     if (ImGui::Button("configure", ImVec2(width, 0))) {
+        gv.log_w.log(
+          6, "configure package %s\n", current.path.string().c_str());
     }
     ImGui::SameLine();
     if (ImGui::Button("build", ImVec2(width, 0))) {
+        gv.log_w.log(6, "build package %s\n", current.path.string().c_str());
     }
     ImGui::SameLine();
     if (ImGui::Button("clean", ImVec2(width, 0))) {
+        gv.log_w.log(6, "cleam package %s\n", current.path.string().c_str());
     }
     ImGui::SameLine();
     if (ImGui::Button("test", ImVec2(width, 0))) {
+        gv.log_w.log(6, "test package %s\n", current.path.string().c_str());
     }
 
     ImGui::End();
