@@ -253,8 +253,8 @@ Glvpz::show_left()
                  static_cast<const vle::vpz::CoupledModel*>(root)
                    ->getModelList())
                 if (child.second->isCoupled())
-                    show_vpz(
-                      static_cast<const vle::vpz::CoupledModel*>(child.second));
+                    show_vpz(static_cast<const vle::vpz::CoupledModel*>(
+                      child.second));
 
             ImGui::TreePop();
         }
@@ -298,9 +298,9 @@ Glvpz::show_left()
             }
 
             ImGui::NextColumn();
-            ImGui::Text(elem.second.library().c_str());
+            ImGui::Text("%s", elem.second.library().c_str());
             ImGui::NextColumn();
-            ImGui::Text(elem.second.package().c_str());
+            ImGui::Text("%s", elem.second.package().c_str());
             ImGui::NextColumn();
         }
 
@@ -319,7 +319,7 @@ Glvpz::show_left()
 
         auto& map = vpz->project().experiment().views().viewlist();
         for (auto& elem : map) {
-            ImGui::Text(elem.first.c_str());
+            ImGui::Text("%s", elem.first.c_str());
             ImGui::NextColumn();
             bool active = elem.second.is_enable();
             ImGui::Checkbox("##value", &active);
@@ -394,7 +394,7 @@ Glvpz::show_center()
 bool
 Glvpz::open(const std::string& file_)
 {
-    st == vle::glvle::Glvpz::status::loading;
+    st = vle::glvle::Glvpz::status::loading;
     try {
         vpz = std::make_shared<vle::vpz::Vpz>(file_);
         vpz->parseFile(file_);

@@ -28,7 +28,9 @@
 
 #include <vle/utils/Filesystem.hpp>
 
+#include <sstream>
 #include <stack>
+#include <thread>
 
 #include <cassert>
 #include <cstdio>
@@ -176,21 +178,125 @@ Glpackage::show(Glvle& gv)
     ImGui::Text("Source: %s", package->getDir(vle::utils::PKG_SOURCE).c_str());
     ImGui::PopStyleVar();
 
-    if (ImGui::Button("configure", ImVec2(width, 0))) {
-        gv.log_w.log(
-          6, "configure package %s\n", current.path.string().c_str());
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("build", ImVec2(width, 0))) {
-        gv.log_w.log(6, "build package %s\n", current.path.string().c_str());
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("clean", ImVec2(width, 0))) {
-        gv.log_w.log(6, "cleam package %s\n", current.path.string().c_str());
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("test", ImVec2(width, 0))) {
-        gv.log_w.log(6, "test package %s\n", current.path.string().c_str());
+    if (pst == package_status::none) {
+        if (ImGui::Button("configure", ImVec2(width, 0))) {
+            pst = package_status::configure;
+            gv.log_w.log(
+              6, "configure package %s\n", current.path.string().c_str());
+
+            try {
+                future_package_return =
+                  std::async(std::launch::async,
+                             [](vle::utils::Package& p,
+                                std::ostream& out,
+                                std::ostream& err) -> bool {
+                                 p.configure();
+                                 p.wait(out, err);
+                                 return p.isSuccess();
+                             },
+                             std::ref(*package),
+                             std::ref(log_package_out),
+                             std::ref(log_package_err));
+
+            } catch (const std::exception& /*e*/) {
+                pst = package_status::none;
+            }
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("build", ImVec2(width, 0))) {
+            pst = package_status::build;
+
+            gv.log_w.log(
+              6, "build package %s\n", current.path.string().c_str());
+            try {
+                future_package_return =
+                  std::async(std::launch::async,
+                             [](vle::utils::Package& p,
+                                std::ostream& out,
+                                std::ostream& err) -> bool {
+                                 p.build();
+                                 p.wait(out, err);
+                                 if (p.isSuccess()) {
+                                     p.install();
+                                     p.wait(out, err);
+                                     return p.isSuccess();
+                                 }
+
+                                 return false;
+                             },
+                             std::ref(*package),
+                             std::ref(log_package_out),
+                             std::ref(log_package_err));
+
+            } catch (const std::exception& /*e*/) {
+                pst = package_status::none;
+            }
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("clean", ImVec2(width, 0))) {
+            pst = package_status::clean;
+            gv.log_w.log(
+              6, "clean package %s\n", current.path.string().c_str());
+            try {
+                future_package_return =
+                  std::async(std::launch::async,
+                             [](vle::utils::Package& p) -> bool {
+                                 p.clean();
+                                 p.rclean();
+                                 return true;
+                             },
+                             std::ref(*package));
+
+            } catch (const std::exception& /*e*/) {
+                pst = package_status::none;
+            }
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("test", ImVec2(width, 0))) {
+            pst = package_status::test;
+            gv.log_w.log(
+              6, "test package %s\n", current.path.string().c_str());
+            try {
+                future_package_return =
+                  std::async(std::launch::async,
+                             [](vle::utils::Package& p,
+                                std::ostream& out,
+                                std::ostream& err) -> bool {
+                                 p.test();
+                                 p.wait(out, err);
+                                 return p.isSuccess();
+                             },
+                             std::ref(*package),
+                             std::ref(log_package_out),
+                             std::ref(log_package_err));
+
+            } catch (const std::exception& /*e*/) {
+                pst = package_status::none;
+            }
+        }
+    } else {
+        static const char* str_status[] = { "Nothing to do"
+                                            "Doing configure...",
+                                            "Doing build...",
+                                            "Doing clean...",
+                                            "Doing test..." };
+
+        if (future_package_return.valid()) {
+            {
+                std::lock_guard<std::mutex> guard(log_package_return);
+                gv.log_w.log(6, "%s", log_package_out.str().c_str());
+                log_package_out.str(std::string());
+                gv.log_w.log(5, "%s", log_package_err.str().c_str());
+                log_package_err.str(std::string());
+            }
+
+            auto s = future_package_return.wait_for(std::chrono::seconds(0));
+            if (s == std::future_status::ready)
+                pst = package_status::none;
+            else
+                ImGui::Text("%s", str_status[static_cast<int>(pst)]);
+        } else
+            ImGui::Text("%s", str_status[static_cast<int>(pst)]);
     }
 
     ImGui::End();
@@ -204,62 +310,6 @@ Glpackage::clear() noexcept
     package.reset();
     current.clear();
 }
-
-// void
-// package_window(Glvle& gv)
-// {
-//     assert(gv.show_package_window);
-//     assert(gv.pkg);
-
-//     if (local_package != gv.package || hierarchy.path.empty())
-//         need_refresh = true;
-
-//     ImGui::SetNextWindowSize(ImVec2(350, 500), true);
-//     if (!ImGui::Begin("Package window", nullptr)) {
-//         ImGui::End();
-//         return;
-//     }
-
-//     ImGui::TextColored(
-//       ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "%s", gv.package.c_str());
-
-//     ImGuiTreeNodeFlags node_flags = ImGuiTreeNodeFlags_DefaultOpen;
-//     if (ImGui::TreeNodeEx(gv.package.c_str(), node_flags)) {
-//         for (const auto& n : hierarchy.children)
-//             boost::apply_visitor(node_visitor(gv), n);
-//         ImGui::TreePop();
-//     }
-
-//     if (need_refresh) {
-//         local_package = gv.package;
-//         hierarchy = refresh(gv);
-//         need_refresh = false;
-//     }
-
-//     float width = ImGui::GetContentRegionAvailWidth() / 4.f -
-//                   2.f * ImGui::GetStyle().FramePadding.x;
-
-//     ImGui::Separator();
-
-//     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
-//     ImGui::Text("Binary: %s", gv.pkg->getDir().c_str());
-//     ImGui::Text("Source: %s",
-//     gv.pkg->getDir(vle::utils::PKG_SOURCE).c_str()); ImGui::PopStyleVar();
-
-//     if (ImGui::Button("configure", ImVec2(width, 0))) {
-//     }
-//     ImGui::SameLine();
-//     if (ImGui::Button("build", ImVec2(width, 0))) {
-//     }
-//     ImGui::SameLine();
-//     if (ImGui::Button("clean", ImVec2(width, 0))) {
-//     }
-//     ImGui::SameLine();
-//     if (ImGui::Button("test", ImVec2(width, 0))) {
-//     }
-
-//     ImGui::End();
-// }
 
 } // namespace glvle
 } // namespace vle

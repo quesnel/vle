@@ -30,6 +30,8 @@
 #include <algorithm>
 #include <future>
 #include <memory>
+#include <mutex>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -345,6 +347,15 @@ struct Glpackage
         open_package_error
     };
 
+    enum class package_status
+    {
+        none,
+        configure,
+        build,
+        clean,
+        test
+    };
+
     struct file
     {
         vle::utils::Path path;
@@ -362,11 +373,6 @@ struct Glpackage
         std::vector<file> file_child;
 
         directory() = default;
-        directory& operator=(const directory& dir) = default;
-        directory& operator=(directory&& dir) noexcept = default;
-        directory(const directory& dir) = default;
-        directory(directory&& dir) noexcept = default;
-
         directory(vle::utils::Path path_)
           : path(std::move(path_))
         {}
@@ -382,9 +388,15 @@ struct Glpackage
     };
 
     std::shared_ptr<vle::utils::Package> package;
+    std::future<bool> future_package_return;
+    std::mutex log_package_return;
+    std::ostringstream log_package_out;
+    std::ostringstream log_package_err;
+
     directory current;
     unsigned long id_generator = 0;
     status st = status::uninitialized;
+    package_status pst = package_status::none;
 
     Glpackage() = default;
 
