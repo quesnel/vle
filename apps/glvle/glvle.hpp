@@ -259,6 +259,9 @@ struct Glvpz
     bool show();
     void show_left();
     void show_center();
+    void show_grid();
+    void show_links();
+    void show_models();
 
     enum class status
     {
@@ -277,11 +280,34 @@ struct Glvpz
         view
     };
 
+    // Glgraph graph;
+    ImVec2 mouse;
+    ImVec2 pos;
+    ImVec2 size;
+
+    ImVec2 offset;
+    ImVec2 scrolling;
+    float scale;
+
     std::string id;
     std::string file;
     std::shared_ptr<vle::vpz::Vpz> vpz;
+    vle::vpz::CoupledModel* top = nullptr;
+    vle::vpz::BaseModel* node_hovered_in_list = nullptr;
+    vle::vpz::BaseModel* node_hovered_in_scene = nullptr;
+    vle::vpz::BaseModel* node_selected = nullptr;
+
+    ImVector<bool> selected_condition;
+
+    ImDrawList* draw_list = nullptr;
+
+    bool open_context_menu = false;
+    bool get_new_atomic_name = false;
+    bool get_new_coupled_name = false;
     status st = status::uninitialized;
     show_vpz_type show_type = show_vpz_type::none;
+
+    bool with_grid = true;
 };
 
 /**
