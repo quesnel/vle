@@ -108,6 +108,15 @@ public:
     }
 
     /**
+     * @brief Get the list of conditions.
+     * @return List of conditions.
+     */
+    inline std::vector<std::string>& conditions()
+    {
+        return m_conditions;
+    }
+
+    /**
      * @brief Get the dynamic.
      * @return The dynamic.
      */
