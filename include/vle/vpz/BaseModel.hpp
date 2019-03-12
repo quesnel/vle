@@ -389,7 +389,7 @@ public:
      * @brief Get X position of model.
      * @return a X position.
      */
-    inline int x() const
+    inline float x() const
     {
         return m_x;
     }
@@ -398,7 +398,7 @@ public:
      * @brief Get Y position of model.
      * @return a Y position.
      */
-    inline int y() const
+    inline float y() const
     {
         return m_y;
     }
@@ -407,7 +407,7 @@ public:
      * @brief Get the width of model.
      * @return a width.
      */
-    inline int width() const
+    inline float width() const
     {
         return m_width;
     }
@@ -416,7 +416,7 @@ public:
      * @brief Get the height of model.
      * @return a height.
      */
-    inline int height() const
+    inline float height() const
     {
         return m_height;
     }
@@ -443,7 +443,7 @@ public:
      * @brief Set a new X position to model.
      * @param x new X position.
      */
-    inline void setX(int x)
+    inline void setX(float x)
     {
         m_x = x;
     }
@@ -452,7 +452,7 @@ public:
      * @brief Set a new Y position to model.
      * @param y new Y position.
      */
-    inline void setY(int y)
+    inline void setY(float y)
     {
         m_y = y;
     }
@@ -461,7 +461,7 @@ public:
      * @brief Set a new width to model.
      * @param width new width.
      */
-    inline void setWidth(int width)
+    inline void setWidth(float width)
     {
         m_width = width;
     }
@@ -470,7 +470,7 @@ public:
      * @brief Set a new height to model.
      * @param height new height.
      */
-    inline void setHeight(int height)
+    inline void setHeight(float height)
     {
         m_height = height;
     }
@@ -498,7 +498,7 @@ public:
      * @param x new X position.
      * @param y new Y position.
      */
-    inline void setPosition(int x, int y)
+    inline void setPosition(float x, float y)
     {
         setX(x);
         setY(y);
@@ -520,7 +520,7 @@ public:
      * @param width a new width.
      * @param height a new height.
      */
-    inline void setSize(int width, int height)
+    inline void setSize(float width, float height)
     {
         setWidth(width);
         setHeight(height);
@@ -632,10 +632,10 @@ protected:
     ConnectionList m_inPortList;
     ConnectionList m_outPortList;
 
-    int m_x{ -1 };
-    int m_y{ -1 };
-    int m_width{ -1 };
-    int m_height{ -1 };
+    float m_x{ 20.f };
+    float m_y{ 20.f };
+    float m_width{ 20.f };
+    float m_height{ 20.f };
     float m_dx;
     float m_dy;
 

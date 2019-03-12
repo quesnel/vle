@@ -706,7 +706,7 @@ public:
      */
     struct IsInModelList
     {
-        IsInModelList(int x, int y)
+        IsInModelList(float x, float y)
           : x(x)
           , y(y)
         {}
@@ -719,7 +719,7 @@ public:
                    y <= value.second->y() + value.second->height();
         };
 
-        int x, y;
+        float x, y;
     };
 
     /**

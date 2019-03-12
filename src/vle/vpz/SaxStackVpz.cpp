@@ -239,8 +239,8 @@ SaxStackVpz::buildModelGraphics(vpz::BaseModel* mdl,
 {
     if (not x.empty() and not y.empty()) {
         try {
-            mdl->setX(std::stoi(x));
-            mdl->setY(std::stoi(y));
+            mdl->setX(std::stof(x));
+            mdl->setY(std::stof(y));
         } catch (const std::exception& /* e */) {
             throw utils::SaxParserError(
               _("Cannot convert x or y position for model %s"),
@@ -250,8 +250,8 @@ SaxStackVpz::buildModelGraphics(vpz::BaseModel* mdl,
 
     if (not width.empty() and not height.empty()) {
         try {
-            mdl->setWidth(std::stoi(width));
-            mdl->setHeight(std::stoi(height));
+            mdl->setWidth(std::stof(width));
+            mdl->setHeight(std::stof(height));
         } catch (const std::exception& /* e */) {
             throw utils::SaxParserError(
               _("Cannot convert width or height for model %s"),
