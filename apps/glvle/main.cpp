@@ -73,8 +73,92 @@ glfw_error_callback(int error, const char* description)
       description);
 }
 
+enum class gv_error_type
+{
+    success,
+    help,
+    short_argument_error,
+    long_argument_error,
+    open_package_error
+};
+
+struct command_line_status
+{
+    command_line_status(gv_error_type status_)
+      : status(status_)
+    {}
+
+    command_line_status(char *package_, int optind_)
+      : package(package_)
+      , optind(optind_)
+    {}
+
+    char *package = nullptr;
+    int optind = -1;
+    gv_error_type status = gv_error_type::success;
+};
+
+// Parse command line option
+// glvle [options...] [vpz files...]
+// - `-P[ ]str`             short option to open a package.
+// - --package[:|=]str]     long option to open a package.
+// - [vpz files...]         list of vpz file to open after in the package.
+//
+// Use the package option to open a package directly when starting glvle.
+static command_line_status
+parse_argument(int argc, char* argv[])
+{
+    const char* short_package = "-P";
+    const char* long_package = "--package";
+    const auto short_package_sz = std::strlen(short_package);
+    const auto long_package_sz = std::strlen(long_package);
+    command_line_status status;
+    char* package = nullptr;
+    int optind = argc;
+    int i = 1;
+
+    while (i < optind) {
+        const auto len = strlen(argv[i]);
+
+        if (std::strncmp(argv[i], short_package, short_package_sz) == 0) {
+            if (len > short_package_sz) {
+                package = argv[i] + short_package_sz;
+            } else {
+                if (i + 1 < argc) {
+                    ++i;
+                    package = argv[i];
+                } else {
+                    return command_line_status(
+                      gv_error_type::short_argument_error);
+                }
+            }
+        } else if (std::strcmp(argv[i], long_package, long_package_sz) == 0) {
+            if (len > long_package_sz && (argv[i][long_package_sz] == '=' ||
+                                          argv[i][long_package_sz] == ':')) {
+                package = argv[i] + long_package_sz;
+            } else {
+                if (i + 1 < argc) {
+                    ++i;
+                    package = argv[i];
+                } else {
+                    return command_line_status(
+                        gv_error_type::long_argument_error);
+                }
+            }
+        } else {
+            --optind;
+            if (i < optind)
+                std::swap(argv[i], argv[optind]);
+        }
+
+        ++i;
+    }
+
+    return command_line_status(package, optind);
+}
+
 int
-main(int, char**)
+main(int argc, char* argv[])
 {
     // Setup window
     glfwSetErrorCallback(glfw_error_callback);
@@ -114,9 +198,8 @@ main(int, char**)
 #elif defined(IMGUI_IMPL_OPENGL_LOADER_GLAD)
     bool err = gladLoadGL() == 0;
 #else
-    bool err =
-      false; // If you use IMGUI_IMPL_OPENGL_LOADER_CUSTOM, your loader
-             // is likely to requires some form of initialization.
+    bool err = false; // If you use IMGUI_IMPL_OPENGL_LOADER_CUSTOM, your loader
+                      // is likely to requires some form of initialization.
 #endif
     if (err) {
         fprintf(stderr, "Failed to initialize OpenGL loader!\n");
@@ -166,6 +249,75 @@ main(int, char**)
     // NULL, io.Fonts->GetGlyphRangesJapanese()); IM_ASSERT(font != NULL);
 
     vle::glvle::Glvle gv;
+
+    auto args = parse_argument(argc, argc);
+    if (args.status == gv_error_type::success) {
+        if (args.package) {
+            try {
+                gv.open(".", package, false);
+            } catch (const std::exceptio& e) {
+                fprintf(
+                  stderr, "Fail to open package %s: %s\n", package, e.what());
+                args.status = gv_error_type::open_package_error;
+            }
+        }
+    }
+
+    switch (args.status) {
+    case gv_error_type::success:
+        break;
+    case gv_error_type::help:
+        puts("glvle [options...] [vpz files...]\n\n"
+             "Options:\n"
+             "- -P[ ]str               short option to open a package.\n"
+             "- --package[:|=]str]     long option to open a package.\n"
+             "- [vpz files...]         list of vpz file to open after in the package.\n");
+        return 0;
+    case gv_error_type::short_argument_error:
+        fprint(stderr, "Short argument error\n");
+        return 1;
+    case gv_error_type::long_argument_error:
+        fprint(stderr, "Long argument error\n");
+        return 2;
+    case gv_error_type::open_package_error:
+        fprintf(stderr, "Fail to open package %s\n", args.package);
+        return 3;
+    case gv_error_type::bag_cli_package:
+        fprintf(stderr, "%s is not a package\n", args.package);
+        return 4;
+    };
+
+    // For all other argument in command line (from the args.optind index),
+    // search vpz files and try to open it in the experiment directory of the
+    // package.
+    if (args.package) {
+        for (; args.optind != argc; ++args.optind) {
+            auto dot = rindex(argv[args.optind], '.');
+
+            if (dot) {
+                if (strcmp(dot, ".vpz") == 0) {
+                    auto p =
+                        gv.package().getDir(vle::utils::Package::PKG_SOURCE);
+                    p /= "exp";
+                    p /= optind;
+
+                    if (p.exists()) {
+                        auto& vpz = gv.vpz_files[p.string()];
+                        vpz.open(f.path.string());
+                    } else {
+                        fprintf(stderr, "File %s does not exist\n",
+                                p.string().c_str());
+                    }
+                } else {
+                    fprintf(stderr, "Can not open a non vpz file (%s)\n",
+                            argv[args.optind]);
+                }
+            } else {
+                fprintf(stderr, "Can not open a non vpz file (%s)\n",
+                        argv[args.optind]);
+            }
+        }
+    }
 
     bool show_demo_window = true;
     bool show_another_window = false;
