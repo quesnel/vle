@@ -24,12 +24,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <vle/devs/Coordinator.hpp>
 #include <vle/devs/Dynamics.hpp>
-#include <vle/devs/DynamicsDbg.hpp>
 #include <vle/devs/Executive.hpp>
 #include <vle/devs/MultiComponent.hpp>
-#include <vle/devs/RootCoordinator.hpp>
+#include <vle/manager/Simulation.hpp>
 #include <vle/oov/Plugin.hpp>
 #include <vle/utils/Filesystem.hpp>
 #include <vle/utils/Tools.hpp>
@@ -40,8 +38,12 @@
 #include <vle/vpz/CoupledModel.hpp>
 #include <vle/vpz/Dynamics.hpp>
 #include <vle/vpz/Experiment.hpp>
+#include <vle/vpz/Vpz.hpp>
 
 #include "oov.hpp"
+
+#include <chrono>
+#include <numeric>
 
 #define xstringify(a) stringify(a)
 #define stringify(a) #a
@@ -459,30 +461,43 @@ DECLARE_DYNAMICS_SYMBOL(dynamics_component_a, package::Model);
 DECLARE_DYNAMICS_SYMBOL(dynamics_agent, package::Agent);
 
 extern "C" {
-VLE_MODULE vle::oov::Plugin*
+
+__attribute__((visibility("default")))
+vle::oov::Plugin*
 oov_plugin(const std::string& location)
 {
     return new vletest::OutputPlugin(location);
 }
+
 }
 
+extern
+__attribute__((visibility("default")))
+vle::oov::Plugin*
+oov_plugin(const std::string& location);
+
 static auto
-run_simulation(vle::utils::ContextPtr ctx, vle::vpz::Vpz& file)
+run_simulation(vle::utils::ContextPtr ctx,
+               std::unique_ptr<vle::vpz::Vpz> file)
   -> std::unique_ptr<vle::value::Map>
 {
-    vle::devs::RootCoordinator root(ctx);
-    root.load(file);
-    file.clear();
-    root.init();
+    using namespace std::chrono_literals;
 
-    while (root.run())
-        ;
+    vle::manager::Simulation simulator(ctx,
+                                       vle::manager::LOG_NONE,
+                                       vle::manager::SIMULATION_NONE,
+                                       0ms,
+                                       &std::cerr);
 
-    auto out = root.outputs();
-    root.finish();
+    vle::manager::Error error;
+    auto ret = simulator.run(std::move(file), &error);
 
-    return out;
-};
+    if (error.code)
+        std::cerr << "Simulation failed with code " << error.code
+                  << " : " << error.message << '\n';
+
+    return ret;
+}
 
 void
 test_component()
@@ -493,10 +508,10 @@ test_component()
     vle::utils::Path p(DEVS_TEST_DIR);
     vle::utils::Path::current_path(p);
 
-    vle::vpz::Vpz file(DEVS_TEST_DIR "/component.vpz");
+    auto file = std::make_unique<vle::vpz::Vpz>(DEVS_TEST_DIR "/component.vpz");
 
     try {
-        auto out = run_simulation(ctx, file);
+        auto out = run_simulation(ctx, std::move(file));
 
         Ensures(out);
         EnsuresEqual(out->size(), 1);
@@ -537,9 +552,9 @@ test_component()
 int
 main()
 {
-    vle::Init app;
-
-    test_component();
+    auto x = ::oov_plugin("test");
+    if (x)
+        test_component();
 
     return unit_test::report_errors();
 }
